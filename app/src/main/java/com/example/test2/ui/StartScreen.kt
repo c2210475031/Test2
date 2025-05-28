@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StartScreen(onContinue: () -> Unit, onCategories: () -> Unit) {
+fun StartScreen(onContinue: () -> Unit, onCategories: () -> Unit, onAddTransaction: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Welcome") })
@@ -31,6 +31,12 @@ fun StartScreen(onContinue: () -> Unit, onCategories: () -> Unit) {
             Spacer(modifier = Modifier.height(12.dp))
             Button(onClick = onCategories) {
                 Text("View Categories")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(onClick = onAddTransaction) {
+                Text("Add Transaction")
             }
 
         }

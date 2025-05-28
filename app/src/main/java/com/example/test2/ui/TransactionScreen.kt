@@ -32,8 +32,8 @@ fun TransactionScreen(viewModel: TransactionViewModel) {
     val selectedFilter by viewModel.filter.collectAsState()
     var expanded by remember { mutableStateOf(false) }
 
-    var startInput by remember { mutableStateOf("") }
-    var endInput by remember { mutableStateOf("") }
+ //   var startInput by remember { mutableStateOf("") }
+ //   var endInput by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Transactions") }) }

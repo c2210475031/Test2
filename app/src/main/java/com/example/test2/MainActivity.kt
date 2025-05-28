@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.*
+import com.example.test2.ui.AddTransactionScreen
 import com.example.test2.ui.CategoryScreen
 import com.example.test2.ui.StartScreen
 import com.example.test2.ui.TransactionScreen
@@ -35,7 +36,8 @@ fun AppNavigation() {
     NavHost(navController = navController, startDestination = "start") {
         composable("start") {
             StartScreen(onContinue = { navController.navigate("transactions") },
-                onCategories = { navController.navigate("categories") })
+                onCategories = { navController.navigate("categories") },
+                onAddTransaction = { navController.navigate("addTransaction")})
         }
         composable("transactions") {
             TransactionScreen(viewModel)
@@ -43,6 +45,10 @@ fun AppNavigation() {
 
         composable("categories") {
             CategoryScreen() // uses hiltViewModel()
+        }
+
+        composable("addTransaction") {
+            AddTransactionScreen(onBack = { navController.popBackStack() })
         }
     }
 }
