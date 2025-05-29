@@ -21,21 +21,18 @@ fun Navigation(modifier: Modifier) {
 
     NavHost(navController = controller, startDestination = Screen.StartScreen.route) {
         composable(route = Screen.StartScreen.route) {
-            StartScreen(
-                onContinue = { controller.navigate("transactions") },
-                onCategories = { controller.navigate("categories") },
-                onAddTransaction = { controller.navigate("addTransaction") })
+            StartScreen(modifier = modifier, navController = controller)
         }
         composable(route = Screen.TransactionScreen.route) {
-            TransactionScreen(viewModel)
+            TransactionScreen(modifier = modifier, navController = controller, viewModel = viewModel)
         }
 
         composable(route = Screen.CategoryScreen.route) {
-            CategoryScreen() // uses hiltViewModel()
+            CategoryScreen(modifier = modifier, navController = controller) // uses hiltViewModel()
         }
 
         composable(route = Screen.AddTransactionScreen.route) {
-            AddTransactionScreen(onBack = { controller.popBackStack() })
+            AddTransactionScreen(modifier = modifier, navController = controller)
         }
     }
 }

@@ -11,11 +11,18 @@ import androidx.compose.ui.unit.dp
 import com.example.financetracker.model.TransactionF
 import com.example.financetracker.viewmodel.TransactionViewModel
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.navigation.NavController
+import com.example.financetracker.navigation.Screen
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -26,16 +33,42 @@ import java.time.format.DateTimeParseException
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TransactionScreen(viewModel: TransactionViewModel) {
+fun TransactionScreen(
+    modifier: Modifier,
+    navController: NavController,
+    viewModel: TransactionViewModel
+) {
     val transactions by viewModel.transactions.collectAsState()
     val selectedFilter by viewModel.filter.collectAsState()
     var expanded by remember { mutableStateOf(false) }
 
- //   var startInput by remember { mutableStateOf("") }
- //   var endInput by remember { mutableStateOf("") }
+    //   var startInput by remember { mutableStateOf("") }
+    //   var endInput by remember { mutableStateOf("") }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Transactions") }) }
+        topBar = {
+            Column {
+                TopAppBar(
+                    title = { Text("Transactions") },
+                    actions = {
+                        IconButton(onClick = {
+                            navController.navigate(Screen.StartScreen.route) {
+                                popUpTo(Screen.StartScreen.route) { inclusive = true }
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Home,
+                                contentDescription = "Exit",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {navController.popBackStack()}) {Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")}
+                    })
+            }
+        }
+
     ) { padding ->
         Column(
             modifier = Modifier
@@ -65,6 +98,7 @@ fun TransactionScreen(viewModel: TransactionViewModel) {
 
             // Date Range Filter
             DateFilterSection(viewModel)
+
 
 
             LazyColumn(
@@ -106,8 +140,6 @@ fun TransactionCard(transaction: TransactionF) {
         }
     }
 }
-
-
 
 
 @RequiresApi(Build.VERSION_CODES.O)

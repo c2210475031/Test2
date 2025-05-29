@@ -7,18 +7,21 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.financetracker.model.TransactionF
+import com.example.financetracker.navigation.Screen
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTransactionScreen(onBack: () -> Unit) {
+fun AddTransactionScreen(modifier: Modifier, navController: NavController) {
     var valueInput by remember { mutableStateOf("") }
     var dateInput by remember { mutableStateOf(LocalDate.now().format(DateTimeFormatter.ISO_DATE)) }
     var categoryInput by remember { mutableStateOf("") }
@@ -26,14 +29,26 @@ fun AddTransactionScreen(onBack: () -> Unit) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Add Transaction") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
-            )
+            Column {
+                TopAppBar(
+                    title = { Text("Add Transaction") },
+                    actions = {
+                        IconButton(onClick = {
+                            navController.navigate(Screen.StartScreen.route) {
+                                popUpTo(Screen.StartScreen.route) { inclusive = true }
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Home,
+                                contentDescription = "Exit",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {navController.popBackStack()}) {Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")}
+                    })
+            }
         }
     ) { padding ->
         Column(
