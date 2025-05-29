@@ -1,19 +1,17 @@
-package com.example.test2.ui
+package com.example.financetracker.presentation
 
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text2.input.TextFieldLineLimits
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.test2.model.TransactionF
+import com.example.financetracker.model.TransactionF
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 

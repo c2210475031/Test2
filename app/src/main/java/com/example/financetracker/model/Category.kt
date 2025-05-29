@@ -1,4 +1,4 @@
-package com.example.test2.model
+package com.example.financetracker.model
 
 data class Category (
     val name: String ="Default",

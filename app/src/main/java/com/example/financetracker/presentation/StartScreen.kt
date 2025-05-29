@@ -1,4 +1,4 @@
-package com.example.test2.ui
+package com.example.financetracker.presentation
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*

@@ -1,7 +1,7 @@
-package com.example.test2.viewmodel
+package com.example.financetracker.viewmodel
 
 import androidx.lifecycle.ViewModel
-import com.example.test2.model.Category
+import com.example.financetracker.model.Category
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

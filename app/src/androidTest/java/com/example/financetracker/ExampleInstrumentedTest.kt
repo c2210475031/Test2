@@ -1,4 +1,4 @@
-package com.example.test2
+package com.example.financetracker
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
