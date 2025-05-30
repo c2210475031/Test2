@@ -7,8 +7,7 @@ import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.Transaction
 
 class TransactionRepository(
-    private val transactionDao: TransactionDao,
-    private val categoryDao: CategoryDao
+    private val transactionDao: TransactionDao, private val categoryDao: CategoryDao
 ) {
     val allTransactions: LiveData<List<Transaction>> = transactionDao.getAllTransactions()
     val allCategories: LiveData<List<Category>> = categoryDao.getAllCategories()
@@ -17,7 +16,15 @@ class TransactionRepository(
         transactionDao.insert(transaction)
     }
 
+    suspend fun deleteTransaction(transaction: Transaction) {
+        transactionDao.delete(transaction)
+    }
+
     suspend fun insertCategory(category: Category) {
         categoryDao.insert(category)
+    }
+
+    suspend fun deleteCategory(category: Category) {
+        categoryDao.delete(category)
     }
 }

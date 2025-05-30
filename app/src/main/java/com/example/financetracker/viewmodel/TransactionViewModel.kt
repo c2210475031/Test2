@@ -4,6 +4,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.*
+import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.Transaction
 import com.example.financetracker.database.repository.TransactionRepository
 import com.example.financetracker.model.TransactionF
@@ -29,11 +30,59 @@ class TransactionViewModel(
     private val repository: TransactionRepository
 ) : ViewModel() {
 
-    private val allTransactions = listOf(
+
+    private val allTransactionsHardCoded = listOf(
         TransactionF(1000.0, "2025-05-25", "Salary", true),
         TransactionF(50.0, "2025-05-24", "Groceries", false),
         TransactionF(15.5, "2025-05-23", "Coffee", false)
     )
+
+    val allCategories: LiveData<List<Category>> = repository.allCategories
+    val allTransactions: LiveData<List<Transaction>> = repository.allTransactions
+
+    fun insertCategory(category: Category) {
+        viewModelScope.launch {
+            try {
+                repository.insertCategory(category)
+                Log.i("TransactionViewModel", "Inserting Category succeeded")
+            } catch (e: Exception) {
+                Log.e("TransactionViewModel", "Inserting Category failed", e)
+            }
+        }
+    }
+
+    fun deleteCategory(category: Category) {
+        viewModelScope.launch {
+            try {
+                repository.deleteCategory(category)
+                Log.i("TransactionViewModel", "Deleting Category succeeded")
+            } catch (e: Exception) {
+                Log.e("TransactionViewModel", "Deleting Category failed", e)
+            }
+        }
+    }
+
+    fun insertTransaction(transaction: Transaction) {
+        viewModelScope.launch {
+            try {
+                repository.insertTransaction(transaction)
+                Log.i("TransactionViewModel", "Inserting of Transaction succeeded")
+            } catch (e: Exception) {
+                Log.e("TransactionViewModel", "Inserting of Transaction failed", e)
+            }
+        }
+    }
+
+    fun deleteTransaction(transaction: Transaction) {
+        viewModelScope.launch {
+            try {
+                repository.deleteTransaction(transaction)
+                Log.i("TransactionViewModel", "Deleting Transaction succeeded")
+            } catch (e: Exception) {
+                Log.e("TransactionViewModel", "Deleting Transaction failed", e)
+            }
+        }
+    }
 
     private val _filter = MutableStateFlow("All")
     val filter: StateFlow<String> = _filter.asStateFlow()
@@ -57,29 +106,30 @@ class TransactionViewModel(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    val transactions: StateFlow<List<TransactionF>> = combine(_filter, _startDate, _endDate) { type, start, end ->
-        var filtered = allTransactions
+    val transactions: StateFlow<List<TransactionF>> =
+        combine(_filter, _startDate, _endDate) { type, start, end ->
+            var filtered = allTransactionsHardCoded
 
-        // Filter by type
-        filtered = when (type) {
-            "Income" -> filtered.filter { it.isPositive }
-            "Expenses" -> filtered.filter { !it.isPositive }
-            else -> filtered
-        }
-
-        // Filter by date range if both start and end are set
-        if (start != null && end != null) {
-            filtered = filtered.filter {
-                val date = LocalDate.parse(it.date, DateTimeFormatter.ISO_DATE)
-                !date.isBefore(start) && !date.isAfter(end)
+            // Filter by type
+            filtered = when (type) {
+                "Income" -> filtered.filter { it.isPositive }
+                "Expenses" -> filtered.filter { !it.isPositive }
+                else -> filtered
             }
-        }
 
-        filtered
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = allTransactions
-    )
+            // Filter by date range if both start and end are set
+            if (start != null && end != null) {
+                filtered = filtered.filter {
+                    val date = LocalDate.parse(it.date, DateTimeFormatter.ISO_DATE)
+                    !date.isBefore(start) && !date.isAfter(end)
+                }
+            }
+
+            filtered
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = allTransactionsHardCoded
+        )
 }
 
