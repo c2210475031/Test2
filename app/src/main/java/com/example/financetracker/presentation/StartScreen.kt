@@ -1,6 +1,8 @@
 package com.example.financetracker.presentation
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -14,7 +16,26 @@ import com.example.financetracker.navigation.Screen
 fun StartScreen(modifier: Modifier, navController: NavController) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Welcome") })
+            Column {
+                TopAppBar(
+                    title = { Text("Welcome") },
+                    actions = {
+                        IconButton(onClick = {
+                            navController.navigate(Screen.ProfileScreen.route) {
+                                popUpTo(Screen.ProfileScreen.route) { inclusive = true }
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.AccountCircle,
+                                contentDescription = "Profile",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                )
+            }
+
+
         }
     ) { padding ->
         Column(
@@ -28,7 +49,7 @@ fun StartScreen(modifier: Modifier, navController: NavController) {
             Text("Welcome to Finance Tracker", style = MaterialTheme.typography.headlineSmall)
 
             Spacer(modifier = Modifier.height(24.dp))
-            Button(onClick = {navController.navigate(Screen.TransactionScreen.route)}) {
+            Button(onClick = { navController.navigate(Screen.TransactionScreen.route) }) {
                 Text("View Transactions")
             }
 
@@ -38,7 +59,7 @@ fun StartScreen(modifier: Modifier, navController: NavController) {
             }
 
             Spacer(modifier = Modifier.height(12.dp))
-            Button(onClick = {navController.navigate(Screen.AddTransactionScreen.route)}) {
+            Button(onClick = { navController.navigate(Screen.AddTransactionScreen.route) }) {
                 Text("Add Transaction")
             }
 

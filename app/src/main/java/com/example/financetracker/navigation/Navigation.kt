@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.financetracker.presentation.AddTransactionScreen
 import com.example.financetracker.presentation.AddCategoryScreen
 import com.example.financetracker.presentation.CategoryScreen
+import com.example.financetracker.presentation.ProfileScreen
 import com.example.financetracker.presentation.StartScreen
 import com.example.financetracker.presentation.TransactionScreen
 
@@ -26,15 +27,11 @@ fun Navigation(modifier: Modifier) {
         }
 
         composable(route = Screen.CategoryScreen.route) {
-            CategoryScreen(modifier = modifier, navController = controller)
+            CategoryScreen(modifier = modifier, navController = controller) // uses hiltViewModel()
         }
 
         composable(route = Screen.AddTransactionScreen.route) {
             AddTransactionScreen(modifier = modifier, navController = controller)
-        }
-
-        composable(route = Screen.AddCategoryScreen.route) {
-            AddCategoryScreen(modifier = modifier, navController = controller)
         }
     }
 }
