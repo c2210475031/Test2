@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -29,6 +30,15 @@ class TransactionViewModelFactory(
 class TransactionViewModel(
     private val repository: TransactionRepository
 ) : ViewModel() {
+
+    private val _allTransactionsFlow: StateFlow<List<Transaction>> =
+        repository.allTransactions.asFlow()
+            .map { it } // No transformation needed here yet
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
 
 
     private val allTransactionsHardCoded = listOf(
@@ -105,7 +115,38 @@ class TransactionViewModel(
         _filter.value = newFilter
     }
 
+
+
     @RequiresApi(Build.VERSION_CODES.O)
+    var transactions: StateFlow<List<Transaction>> =
+        combine(_allTransactionsFlow, _filter, _startDate, _endDate) { all, type, start, end ->
+            var filtered = all
+
+            filtered = when (type) {
+                "Income" -> filtered.filter { it.isPositive }
+                "Expenses" -> filtered.filter { !it.isPositive }
+                else -> filtered
+            }
+
+            if (start != null && end != null) {
+                filtered = filtered.filter {
+                    val date = it.timestamp.atZone(java.time.ZoneId.systemDefault()).toLocalDate()
+                    !date.isBefore(start) && !date.isAfter(end)
+                }
+            }
+
+            filtered
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+
+
+
+
+    /*@RequiresApi(Build.VERSION_CODES.O)
     val transactions: StateFlow<List<TransactionF>> =
         combine(_filter, _startDate, _endDate) { type, start, end ->
             var filtered = allTransactionsHardCoded
@@ -130,6 +171,6 @@ class TransactionViewModel(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = allTransactionsHardCoded
-        )
+        )*/
 }
 

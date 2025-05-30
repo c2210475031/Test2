@@ -16,6 +16,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.financetracker.database.AppDatabase
 import com.example.financetracker.database.model.Category
+import com.example.financetracker.database.model.Transaction
 import com.example.financetracker.database.repository.TransactionRepository
 import com.example.financetracker.navigation.Screen
 import com.example.financetracker.viewmodel.TransactionViewModel
@@ -69,7 +70,7 @@ fun CategoryScreen(
                 .padding(16.dp)
         ) {
             items(categories) {category ->
-                CategoryCard(category)
+                CategoryCard(category, onDelete = { viewModel.deleteCategory(it)})
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
@@ -77,7 +78,7 @@ fun CategoryScreen(
 }
 
 @Composable
-fun CategoryCard(category: Category) {
+fun CategoryCard(category: Category, onDelete: (Category) -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)
     ) {
@@ -88,6 +89,16 @@ fun CategoryCard(category: Category) {
                 else "Limit: €${category.maxNegativeValue}",
                 style = MaterialTheme.typography.bodySmall
             )
+            Text(text = "${category.id}", style = MaterialTheme.typography.bodySmall)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Delete Button
+            Button(
+                onClick = { onDelete(category) },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text("Delete", color = MaterialTheme.colorScheme.onError)
+            }
         }
     }
 }

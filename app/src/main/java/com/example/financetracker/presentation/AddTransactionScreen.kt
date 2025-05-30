@@ -16,6 +16,8 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -29,6 +31,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -57,6 +60,8 @@ fun AddTransactionScreen(modifier: Modifier, navController: NavController) {
     var dateInput by remember { mutableStateOf(LocalDate.now().format(DateTimeFormatter.ISO_DATE)) }
     var categoryInput by remember { mutableStateOf("") }
     var isPositive by remember { mutableStateOf(true) }
+    var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
+    var expanded by remember { mutableStateOf(false) }
 
     val context = LocalContext.current.applicationContext
     val db =
@@ -66,6 +71,8 @@ fun AddTransactionScreen(modifier: Modifier, navController: NavController) {
     val viewModel: TransactionViewModel = viewModel(
         factory = TransactionViewModelFactory(repository)
     )
+
+    val categories by viewModel.allCategories.observeAsState(emptyList())
 
     Scaffold(
         topBar = {
@@ -109,14 +116,42 @@ fun AddTransactionScreen(modifier: Modifier, navController: NavController) {
                 label = "Date", selectedDate = dateInput, onDateSelected = { dateInput = it })
             Spacer(modifier = Modifier.height(8.dp))
 
-            OutlinedTextField(
-                value = categoryInput,
-                onValueChange = { categoryInput = it },
-                label = { Text("Category") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+
+
+            Column(modifier = Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value =  categories.find { it.id == selectedCategoryId }?.let { "${it.name} (ID: ${it.id})" } ?: "",
+                    onValueChange = {},
+                    label = { Text("Select Category") },
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true,
+                    trailingIcon = {
+                        IconButton(onClick = { expanded = true }) {
+                            Icon(Icons.Default.DateRange, contentDescription = "Select category")
+                        }
+                    }
+                )
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    categories.forEach { category ->
+                        DropdownMenuItem(
+                            text = { Text("${category.name} (ID: ${category.id})") },
+                            onClick = {
+                                selectedCategoryId = category.id
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+
+
+
+
+
 
             Row {
                 Text("Type:")
@@ -139,15 +174,14 @@ fun AddTransactionScreen(modifier: Modifier, navController: NavController) {
                     val category = Category(
                         name = "Groceries", type = CategoryType.EXPENSE, maxNegativeValue = 0.0
                     )
-
                     val transaction = Transaction(
                         amount = valueInput.toDoubleOrNull() ?: 0.0,
                         timestamp = Instant.now(),
-                        categoryId = 1,
+                        categoryId = selectedCategoryId ?: return@Button, // Skip if not selected
                         isPositive = isPositive
                     )
 
-                    viewModel.insertCategory(category)
+                    //viewModel.insertCategory(category)
                     viewModel.insertTransaction(transaction) //TODO: MAKE SURE THAT A CATEGORY EXISTS BEFORE INSERTING A TRANSACTION BECAUSE OF FOREIGN-KEY DEPENDENCY
                 }, modifier = Modifier.fillMaxWidth()
             ) {

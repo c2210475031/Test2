@@ -41,6 +41,11 @@ fun StartScreen(modifier: Modifier, navController: NavController) {
             Button(onClick = {navController.navigate(Screen.AddTransactionScreen.route)}) {
                 Text("Add Transaction")
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            Button(onClick = {navController.navigate(Screen.AddCategoryScreen.route)}) {
+                Text("Add Category")
+            }
         }
     }
 }

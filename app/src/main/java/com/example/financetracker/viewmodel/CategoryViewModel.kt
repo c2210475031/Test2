@@ -1,3 +1,5 @@
+
+
 package com.example.financetracker.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -5,7 +7,7 @@ import com.example.financetracker.model.Category
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-
+/*
 class CategoryViewModel : ViewModel() {
     private val _categories = MutableStateFlow(
         listOf(
@@ -18,3 +20,4 @@ class CategoryViewModel : ViewModel() {
     )
     val categories: StateFlow<List<Category>> = _categories.asStateFlow()
 }
+*/

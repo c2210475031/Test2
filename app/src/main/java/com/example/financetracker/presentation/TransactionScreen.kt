@@ -18,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
@@ -44,7 +45,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.room.Delete
 import com.example.financetracker.database.AppDatabase
+import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.Transaction
 import com.example.financetracker.database.repository.TransactionRepository
 import com.example.financetracker.model.TransactionF
@@ -73,7 +76,9 @@ fun TransactionScreen(
         factory = TransactionViewModelFactory(repository)
     )
 
-    val transactions by viewModel.allTransactions.observeAsState(emptyList())
+    val transactions by viewModel.transactions.collectAsState()
+
+    val categories by viewModel.allCategories.observeAsState(emptyList())
 
     val selectedFilter by viewModel.filter.collectAsState()
     var expanded by remember { mutableStateOf(false) }
@@ -143,7 +148,7 @@ fun TransactionScreen(
                     .padding(16.dp)
             ) {
                 items(transactions) { transaction ->
-                    TransactionCard(transaction)
+                    TransactionCard(transaction, categories, onDelete = { viewModel.deleteTransaction(it) })
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
@@ -161,7 +166,7 @@ fun String.toLocalDateOrNull(): LocalDate? =
     }
 
 @Composable
-fun TransactionCard(transaction: Transaction) {
+fun TransactionCard(transaction: Transaction, categories: List<Category>, onDelete: (Transaction)-> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(4.dp)
@@ -173,7 +178,24 @@ fun TransactionCard(transaction: Transaction) {
             )
             Text(text = "${transaction.timestamp}", style = MaterialTheme.typography.bodySmall)
             Text(text = "${transaction.categoryId}", style = MaterialTheme.typography.bodySmall)
+            var x = "yyyy-MM-dd";
+            for (temp:Category in categories){
+                if(temp.id == transaction.categoryId) x = "${temp.name}";
+            }
+            Text(text = x, style = MaterialTheme.typography.bodySmall)
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Delete Button
+            Button(
+                onClick = { onDelete(transaction) },
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text("Delete", color = MaterialTheme.colorScheme.onError)
+            }
+
         }
+
     }
 }
 
