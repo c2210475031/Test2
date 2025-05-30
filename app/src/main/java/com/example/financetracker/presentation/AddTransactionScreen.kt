@@ -11,12 +11,22 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.financetracker.database.AppDatabase
+import com.example.financetracker.database.model.Transaction
+import com.example.financetracker.database.repository.TransactionRepository
 import com.example.financetracker.model.TransactionF
 import com.example.financetracker.navigation.Screen
+import com.example.financetracker.viewmodel.TransactionViewModel
+import com.example.financetracker.viewmodel.TransactionViewModelFactory
+import kotlinx.coroutines.flow.StateFlow
+import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import kotlin.math.log
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,6 +36,14 @@ fun AddTransactionScreen(modifier: Modifier, navController: NavController) {
     var dateInput by remember { mutableStateOf(LocalDate.now().format(DateTimeFormatter.ISO_DATE)) }
     var categoryInput by remember { mutableStateOf("") }
     var isPositive by remember { mutableStateOf(true) }
+
+    val context = LocalContext.current.applicationContext
+    val db = AppDatabase.getDatabase(context.applicationContext) // Replace with your real Application class
+    val repository = TransactionRepository(db.transactionDao(), db.categoryDao())
+
+    val viewModel: TransactionViewModel = viewModel(
+        factory = TransactionViewModelFactory(repository)
+    )
 
     Scaffold(
         topBar = {
@@ -101,12 +119,13 @@ fun AddTransactionScreen(modifier: Modifier, navController: NavController) {
 
             Button(
                 onClick = {
-                    val transaction = TransactionF(
-                        value = valueInput.toDoubleOrNull() ?: 0.0,
-                        date = dateInput,
-                        category = categoryInput,
-                        isPositive = isPositive
+                    val transaction = Transaction(
+                        amount = valueInput.toDoubleOrNull() ?: 0.0,
+                        timestamp = Instant.now(),
+                        categoryId = 1,
+                        isPositive =  isPositive
                     )
+
                     Log.d("AddTransaction", "Saved: $transaction")
                     // Later: Send this to ViewModel
                 },

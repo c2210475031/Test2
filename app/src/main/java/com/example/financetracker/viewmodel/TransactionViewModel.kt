@@ -1,8 +1,11 @@
 package com.example.financetracker.viewmodel
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.*
+import com.example.financetracker.database.model.Transaction
+import com.example.financetracker.database.repository.TransactionRepository
 import com.example.financetracker.model.TransactionF
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -10,11 +13,21 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+class TransactionViewModelFactory(
+    private val repository: TransactionRepository
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return TransactionViewModel(repository) as T
+    }
+}
 
-class TransactionViewModel : ViewModel() {
+class TransactionViewModel(
+    private val repository: TransactionRepository
+) : ViewModel() {
 
     private val allTransactions = listOf(
         TransactionF(1000.0, "2025-05-25", "Salary", true),
@@ -38,7 +51,6 @@ class TransactionViewModel : ViewModel() {
     fun setEndDate(date: LocalDate?) {
         _endDate.value = date
     }
-
 
     fun setFilter(newFilter: String) {
         _filter.value = newFilter

@@ -9,23 +9,22 @@ import androidx.navigation.compose.rememberNavController
 import com.example.financetracker.presentation.AddTransactionScreen
 import com.example.financetracker.presentation.CategoryScreen
 import com.example.financetracker.presentation.StartScreen
-import com.example.financetracker.presentation.TransactionScreen
 import com.example.financetracker.viewmodel.TransactionViewModel
 import androidx.compose.ui.Modifier
+import com.example.financetracker.viewmodel.TransactionViewModelFactory
 
 @SuppressLint("NewApi")
 @Composable
 fun Navigation(modifier: Modifier) {
     val controller = rememberNavController()
-    val viewModel: TransactionViewModel = viewModel()
 
     NavHost(navController = controller, startDestination = Screen.StartScreen.route) {
         composable(route = Screen.StartScreen.route) {
             StartScreen(modifier = modifier, navController = controller)
         }
-        composable(route = Screen.TransactionScreen.route) {
-            TransactionScreen(modifier = modifier, navController = controller, viewModel = viewModel)
-        }
+//        composable(route = Screen.TransactionScreen.route) {
+//            TransactionScreen(modifier = modifier, navController = controller)
+//        }
 
         composable(route = Screen.CategoryScreen.route) {
             CategoryScreen(modifier = modifier, navController = controller) // uses hiltViewModel()
