@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.financetracker.presentation.AddTransactionScreen
 import com.example.financetracker.presentation.CategoryScreen
+import com.example.financetracker.presentation.ProfileScreen
 import com.example.financetracker.presentation.StartScreen
 import com.example.financetracker.presentation.TransactionScreen
 
@@ -30,6 +31,10 @@ fun Navigation(modifier: Modifier) {
 
         composable(route = Screen.AddTransactionScreen.route) {
             AddTransactionScreen(modifier = modifier, navController = controller)
+        }
+
+        composable(route = Screen.ProfileScreen.route) {
+            ProfileScreen(modifier = modifier, navController = controller)
         }
     }
 }
