@@ -16,11 +16,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.financetracker.database.AppDatabase
 import com.example.financetracker.database.model.Category
-import com.example.financetracker.database.model.Transaction
 import com.example.financetracker.database.repository.TransactionRepository
 import com.example.financetracker.navigation.Screen
-import com.example.financetracker.viewmodel.TransactionViewModel
-import com.example.financetracker.viewmodel.TransactionViewModelFactory
+import com.example.financetracker.viewmodel.GlobalViewModel
+import com.example.financetracker.viewmodel.GlobalViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,8 +32,8 @@ fun CategoryScreen(
     val db = AppDatabase.getDatabase(context.applicationContext) // Replace with your real Application class
     val repository = TransactionRepository(db.transactionDao(), db.categoryDao())
 
-    val viewModel: TransactionViewModel = viewModel(
-        factory = TransactionViewModelFactory(repository)
+    val viewModel: GlobalViewModel = viewModel(
+        factory = GlobalViewModelFactory(repository)
     )
 
     val categories by viewModel.allCategories.observeAsState(emptyList())

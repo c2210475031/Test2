@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.financetracker.database.AppDatabase
@@ -19,8 +20,8 @@ import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.CategoryType
 import com.example.financetracker.database.repository.TransactionRepository
 import com.example.financetracker.navigation.Screen
-import com.example.financetracker.viewmodel.TransactionViewModel
-import com.example.financetracker.viewmodel.TransactionViewModelFactory
+import com.example.financetracker.viewmodel.GlobalViewModel
+import com.example.financetracker.viewmodel.GlobalViewModelFactory
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,7 +34,7 @@ fun AddCategoryScreen(modifier: Modifier, navController: NavController) {
     val context = LocalContext.current.applicationContext
     val db = AppDatabase.getDatabase(context)
     val repository = TransactionRepository(db.transactionDao(), db.categoryDao())
-    val viewModel: TransactionViewModel = viewModel(factory = TransactionViewModelFactory(repository))
+    val viewModel: GlobalViewModel = viewModel(factory = GlobalViewModelFactory(repository))
 
     Scaffold(
         topBar = {

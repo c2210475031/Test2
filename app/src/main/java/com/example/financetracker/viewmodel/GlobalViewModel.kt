@@ -17,17 +17,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
-class TransactionViewModelFactory(
+class GlobalViewModelFactory(
     private val repository: TransactionRepository
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return TransactionViewModel(repository) as T
+        return GlobalViewModel(repository) as T
     }
 }
 
-class TransactionViewModel(
+class GlobalViewModel(
     private val repository: TransactionRepository
 ) : ViewModel() {
 
