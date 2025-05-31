@@ -20,11 +20,19 @@ class TransactionRepository(
         transactionDao.delete(transaction)
     }
 
+    suspend fun updateTransaction(transaction: Transaction) {
+        transactionDao.update(transaction)
+    }
+
     suspend fun insertCategory(category: Category) {
         categoryDao.insert(category)
     }
 
     suspend fun deleteCategory(category: Category) {
         categoryDao.delete(category)
+    }
+
+    suspend fun updateCategory(category: Category) {
+        categoryDao.update(category)
     }
 }

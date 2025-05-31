@@ -53,9 +53,9 @@ class GlobalViewModel(
         viewModelScope.launch {
             try {
                 repository.insertCategory(category)
-                Log.i("TransactionViewModel", "Inserting Category succeeded")
+                Log.i("GlobalViewModel", "Inserting Category succeeded")
             } catch (e: Exception) {
-                Log.e("TransactionViewModel", "Inserting Category failed", e)
+                Log.e("GlobalViewModel", "Inserting Category failed", e)
             }
         }
     }
@@ -64,9 +64,20 @@ class GlobalViewModel(
         viewModelScope.launch {
             try {
                 repository.deleteCategory(category)
-                Log.i("TransactionViewModel", "Deleting Category succeeded")
+                Log.i("GlobalViewModel", "Deleting Category succeeded")
             } catch (e: Exception) {
-                Log.e("TransactionViewModel", "Deleting Category failed", e)
+                Log.e("GlobalViewModel", "Deleting Category failed", e)
+            }
+        }
+    }
+
+    fun updateCategory(category: Category) {
+        viewModelScope.launch {
+            try {
+                repository.updateCategory(category)
+                Log.i("GlobalViewModel", "Updating Category succeeded")
+            } catch (e: Exception) {
+                Log.e("GlobalViewModel", "Updating Category failed", e)
             }
         }
     }
@@ -75,9 +86,9 @@ class GlobalViewModel(
         viewModelScope.launch {
             try {
                 repository.insertTransaction(transaction)
-                Log.i("TransactionViewModel", "Inserting of Transaction succeeded")
+                Log.i("GlobalViewModel", "Inserting of Transaction succeeded")
             } catch (e: Exception) {
-                Log.e("TransactionViewModel", "Inserting of Transaction failed", e)
+                Log.e("GlobalViewModel", "Inserting of Transaction failed", e)
             }
         }
     }
@@ -86,9 +97,20 @@ class GlobalViewModel(
         viewModelScope.launch {
             try {
                 repository.deleteTransaction(transaction)
-                Log.i("TransactionViewModel", "Deleting Transaction succeeded")
+                Log.i("GlobalViewModel", "Deleting Transaction succeeded")
             } catch (e: Exception) {
-                Log.e("TransactionViewModel", "Deleting Transaction failed", e)
+                Log.e("GlobalViewModel", "Deleting Transaction failed", e)
+            }
+        }
+    }
+    
+    fun updateTransaction(transaction: Transaction) {
+        viewModelScope.launch { 
+            try {
+                repository.updateTransaction(transaction)
+                Log.i("GlobalViewModel", "Updating Transaction succeeded")
+            } catch (e: Exception) {
+                Log.e("GlobalViewModel", "Updating Transaction failed", e)
             }
         }
     }

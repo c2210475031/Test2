@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.example.financetracker.database.model.Transaction
 
 @Dao
@@ -14,6 +15,9 @@ interface TransactionDao {
 
     @Delete
     suspend fun delete(transaction: Transaction)
+
+    @Update
+    suspend fun update(transaction: Transaction)
 
     @Query("SELECT * FROM transactions")
     fun getAllTransactions(): LiveData<List<Transaction>>

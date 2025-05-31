@@ -5,6 +5,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import com.example.financetracker.database.model.Category
 
 @Dao
@@ -14,6 +15,9 @@ interface CategoryDao {
 
     @Delete
     suspend fun delete(category: Category)
+
+    @Update
+    suspend fun update(category: Category)
 
     @Query("SELECT * FROM categories")
     fun getAllCategories(): LiveData<List<Category>>
