@@ -69,7 +69,7 @@ fun CategoryScreen(
                 .padding(16.dp)
         ) {
             items(categories) {category ->
-                CategoryCard(category, onDelete = { viewModel.deleteCategory(it)})
+                CategoryCard(category, onDelete = { viewModel.deleteCategory(it)}, navController = navController)
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
@@ -77,27 +77,41 @@ fun CategoryScreen(
 }
 
 @Composable
-fun CategoryCard(category: Category, onDelete: (Category) -> Unit) {
+fun CategoryCard(category: Category, onDelete: (Category) -> Unit, navController: NavController) {
     Card(
         modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = category.name, style = MaterialTheme.typography.titleMedium)
-            Text(
-                text = if (category.maxNegativeValue < 0) "No limit"
-                else "Limit: €${category.maxNegativeValue}",
-                style = MaterialTheme.typography.bodySmall
-            )
-            Text(text = "${category.id}", style = MaterialTheme.typography.bodySmall)
-            Spacer(modifier = Modifier.height(8.dp))
+        Row {
+            Column(modifier = Modifier.padding(16.dp)) {
+               Text(text = category.name, style = MaterialTheme.typography.titleMedium)
+              Text(
+                  text = if (category.maxNegativeValue < 0) "No limit"
+                  else "Limit: €${category.maxNegativeValue}",
+                   style = MaterialTheme.typography.bodySmall
+               )
+               Text(text = "${category.id}", style = MaterialTheme.typography.bodySmall)
+            }
 
             // Delete Button
-            Button(
-                onClick = { onDelete(category) },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-            ) {
-                Text("Delete", color = MaterialTheme.colorScheme.onError)
-            }
+               Button(
+                    onClick = { onDelete(category) },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                 Text("Delete", color = MaterialTheme.colorScheme.onError)
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = {
+                        navController.navigate(Screen.EditCategoryScreen.createRoute(category.id))
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Edit")
+                }
+
+
         }
     }
 }

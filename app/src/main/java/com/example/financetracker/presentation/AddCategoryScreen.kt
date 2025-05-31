@@ -53,7 +53,7 @@ fun AddCategoryScreen(modifier: Modifier, navController: NavController) {
                     }) {
                         Icon(Icons.Default.Home, contentDescription = "Exit")
                     }
-                }
+                } 
             )
         }
     ) { padding ->

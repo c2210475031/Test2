@@ -146,7 +146,7 @@ fun TransactionScreen(
                     .padding(16.dp)
             ) {
                 items(transactions) { transaction ->
-                    TransactionCard(transaction, categories, onDelete = { viewModel.deleteTransaction(it) })
+                    TransactionCard(transaction, categories, onDelete = { viewModel.deleteTransaction(it) }, navController = navController)
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
@@ -164,7 +164,7 @@ fun String.toLocalDateOrNull(): LocalDate? =
     }
 
 @Composable
-fun TransactionCard(transaction: Transaction, categories: List<Category>, onDelete: (Transaction)-> Unit) {
+fun TransactionCard(transaction: Transaction, categories: List<Category>, onDelete: (Transaction)-> Unit, navController: NavController) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(4.dp)
@@ -191,6 +191,16 @@ fun TransactionCard(transaction: Transaction, categories: List<Category>, onDele
             ) {
                 Text("Delete", color = MaterialTheme.colorScheme.onError)
             }
+
+            Button(
+                onClick = {
+                    //navController.navigate("editTransaction/${transaction.ID}")
+                    navController.navigate(Screen.EditTransactionScreen.createRoute(transaction.ID))
+                }
+            ) {
+                Text("Edit")
+            }
+
 
         }
 

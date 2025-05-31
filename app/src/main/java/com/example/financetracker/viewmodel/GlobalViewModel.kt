@@ -7,7 +7,6 @@ import androidx.lifecycle.*
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.Transaction
 import com.example.financetracker.database.repository.TransactionRepository
-import com.example.financetracker.model.TransactionF
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -40,11 +39,6 @@ class GlobalViewModel(
             )
 
 
-    private val allTransactionsHardCoded = listOf(
-        TransactionF(1000.0, "2025-05-25", "Salary", true),
-        TransactionF(50.0, "2025-05-24", "Groceries", false),
-        TransactionF(15.5, "2025-05-23", "Coffee", false)
-    )
 
     val allCategories: LiveData<List<Category>> = repository.allCategories
     val allTransactions: LiveData<List<Transaction>> = repository.allTransactions
