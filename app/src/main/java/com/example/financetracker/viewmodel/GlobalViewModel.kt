@@ -6,8 +6,8 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.*
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.Transaction
+import com.example.financetracker.database.model.User
 import com.example.financetracker.database.repository.TransactionRepository
-import com.example.financetracker.model.TransactionF
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -31,23 +31,49 @@ class GlobalViewModel(
 ) : ViewModel() {
 
     private val _allTransactionsFlow: StateFlow<List<Transaction>> =
-        repository.allTransactions.asFlow()
-            .map { it } // No transformation needed here yet
+        repository.allTransactions.asFlow().map { it } // No transformation needed here yet
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = emptyList()
             )
 
-
-    private val allTransactionsHardCoded = listOf(
-        TransactionF(1000.0, "2025-05-25", "Salary", true),
-        TransactionF(50.0, "2025-05-24", "Groceries", false),
-        TransactionF(15.5, "2025-05-23", "Coffee", false)
-    )
-
-    val allCategories: LiveData<List<Category>> = repository.allCategories
+    val allUsers: LiveData<List<User>> = repository.allUsers
     val allTransactions: LiveData<List<Transaction>> = repository.allTransactions
+    val allCategories: LiveData<List<Category>> = repository.allCategories
+
+    fun insertUser(user: User) {
+        viewModelScope.launch {
+            try {
+                repository.insertUser(user)
+                Log.i("GlobalViewModel", "Insert of User succeeded")
+            } catch (e: Exception) {
+                Log.e("GlobalViewModel", "Insert of User failed", e)
+            }
+        }
+    }
+
+    fun updateUser(user: User) {
+        viewModelScope.launch {
+            try {
+                repository.updateUser(user)
+                Log.i("GlobalViewModel", "Update of User succeeded")
+            } catch (e: Exception) {
+                Log.e("GlobalViewModel", "Update of User failed", e)
+            }
+        }
+    }
+
+    fun deleteUser(user: User) {
+        viewModelScope.launch {
+            try {
+                repository.deleteUser(user)
+                Log.i("GlobalViewModel", "Delete of User succeeded")
+            } catch (e: Exception) {
+                Log.e("GlobalViewModel", "Delete of User failed", e)
+            }
+        }
+    }
 
     fun insertCategory(category: Category) {
         viewModelScope.launch {
@@ -103,9 +129,9 @@ class GlobalViewModel(
             }
         }
     }
-    
+
     fun updateTransaction(transaction: Transaction) {
-        viewModelScope.launch { 
+        viewModelScope.launch {
             try {
                 repository.updateTransaction(transaction)
                 Log.i("GlobalViewModel", "Updating Transaction succeeded")
@@ -136,8 +162,6 @@ class GlobalViewModel(
         _filter.value = newFilter
     }
 
-
-
     @RequiresApi(Build.VERSION_CODES.O)
     var transactions: StateFlow<List<Transaction>> =
         combine(_allTransactionsFlow, _filter, _startDate, _endDate) { all, type, start, end ->
@@ -162,36 +186,4 @@ class GlobalViewModel(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
-
-
-
-
-
-    /*@RequiresApi(Build.VERSION_CODES.O)
-    val transactions: StateFlow<List<TransactionF>> =
-        combine(_filter, _startDate, _endDate) { type, start, end ->
-            var filtered = allTransactionsHardCoded
-
-            // Filter by type
-            filtered = when (type) {
-                "Income" -> filtered.filter { it.isPositive }
-                "Expenses" -> filtered.filter { !it.isPositive }
-                else -> filtered
-            }
-
-            // Filter by date range if both start and end are set
-            if (start != null && end != null) {
-                filtered = filtered.filter {
-                    val date = LocalDate.parse(it.date, DateTimeFormatter.ISO_DATE)
-                    !date.isBefore(start) && !date.isAfter(end)
-                }
-            }
-
-            filtered
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = allTransactionsHardCoded
-        )*/
 }
-

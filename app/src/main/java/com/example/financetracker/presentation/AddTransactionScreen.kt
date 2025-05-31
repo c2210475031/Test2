@@ -44,6 +44,7 @@ import com.example.financetracker.database.AppDatabase
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.CategoryType
 import com.example.financetracker.database.model.Transaction
+import com.example.financetracker.database.model.User
 import com.example.financetracker.database.repository.TransactionRepository
 import com.example.financetracker.navigation.Screen
 import com.example.financetracker.viewmodel.GlobalViewModel
@@ -65,7 +66,7 @@ fun AddTransactionScreen(modifier: Modifier, navController: NavController) {
 
     val context = LocalContext.current.applicationContext
     val db = AppDatabase.getDatabase(context.applicationContext) // Replace with your real Application class
-    val repository = TransactionRepository(db.transactionDao(), db.categoryDao())
+    val repository = TransactionRepository(db.transactionDao(), db.categoryDao(), db.userDao())
 
     val viewModel: GlobalViewModel = viewModel(
         factory = GlobalViewModelFactory(repository)
@@ -170,14 +171,19 @@ fun AddTransactionScreen(modifier: Modifier, navController: NavController) {
 
             Button(
                 onClick = {
+                    //TODO Create/Query user and use its ID to create a new Transaction
+                    val user = User(name = "Hermann")
+                    viewModel.insertUser(user)
+
                     val category = Category(
-                        name = "Groceries", type = CategoryType.EXPENSE, maxNegativeValue = 0.0
+                        name = "Groceries", type = CategoryType.EXPENSE, maxNegativeValue = 0.0, userId = user.id
                     )
                     val transaction = Transaction(
                         amount = valueInput.toDoubleOrNull() ?: 0.0,
                         timestamp = Instant.now(),
                         categoryId = selectedCategoryId ?: return@Button, // Skip if not selected
-                        isPositive = isPositive
+                        isPositive = isPositive,
+                        userId = user.id
                     )
 
                     //viewModel.insertCategory(category)

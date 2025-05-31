@@ -18,6 +18,7 @@ import androidx.navigation.NavController
 import com.example.financetracker.database.AppDatabase
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.CategoryType
+import com.example.financetracker.database.model.User
 import com.example.financetracker.database.repository.TransactionRepository
 import com.example.financetracker.navigation.Screen
 import com.example.financetracker.viewmodel.GlobalViewModel
@@ -33,7 +34,7 @@ fun AddCategoryScreen(modifier: Modifier, navController: NavController) {
 
     val context = LocalContext.current.applicationContext
     val db = AppDatabase.getDatabase(context)
-    val repository = TransactionRepository(db.transactionDao(), db.categoryDao())
+    val repository = TransactionRepository(db.transactionDao(), db.categoryDao(), db.userDao())
     val viewModel: GlobalViewModel = viewModel(factory = GlobalViewModelFactory(repository))
 
     Scaffold(
@@ -102,11 +103,15 @@ fun AddCategoryScreen(modifier: Modifier, navController: NavController) {
             Button(
                 onClick = {
                     val maxLimit = maxLimitInput.toDoubleOrNull() ?: -1.0
+
+                    //TODO Create/Query user and use its ID to create a new Category
+                    val user = User(name = "Hermann")
                     if (nameInput.isNotBlank()) {
                         val category = Category(
                             name = nameInput,
                             type = selectedType,
-                            maxNegativeValue = maxLimit
+                            maxNegativeValue = maxLimit,
+                            userId = user.id
                         )
                         viewModel.insertCategory(category)
                         navController.popBackStack()

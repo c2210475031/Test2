@@ -68,7 +68,7 @@ fun TransactionScreen(
 ) {
     val context = LocalContext.current.applicationContext
     val db = AppDatabase.getDatabase(context.applicationContext) // Replace with your real Application class
-    val repository = TransactionRepository(db.transactionDao(), db.categoryDao())
+    val repository = TransactionRepository(db.transactionDao(), db.categoryDao(), db.userDao())
 
     val viewModel: GlobalViewModel = viewModel(
         factory = GlobalViewModelFactory(repository)

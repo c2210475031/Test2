@@ -21,4 +21,7 @@ interface CategoryDao {
 
     @Query("SELECT * FROM categories")
     fun getAllCategories(): LiveData<List<Category>>
+
+    @Query("SELECT * FROM categories WHERE userId = :userId")
+    fun getCategoriesOfUser(userId: Int): LiveData<List<Category>>
 }
