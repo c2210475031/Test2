@@ -6,8 +6,8 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.*
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.Transaction
-import com.example.financetracker.database.model.User
 import com.example.financetracker.database.repository.TransactionRepository
+import com.example.financetracker.model.TransactionF
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
