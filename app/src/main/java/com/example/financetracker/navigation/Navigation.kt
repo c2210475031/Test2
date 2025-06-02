@@ -6,14 +6,14 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.financetracker.presentation.AddCategoryScreen
-import com.example.financetracker.presentation.AddTransactionScreen
-import com.example.financetracker.presentation.CategoryScreen
-import com.example.financetracker.presentation.EditTransactionScreen
+import com.example.financetracker.presentation.category.AddCategoryScreen
+import com.example.financetracker.presentation.transaction.AddTransactionScreen
+import com.example.financetracker.presentation.category.CategoryScreen
+import com.example.financetracker.presentation.transaction.EditTransactionScreen
 import com.example.financetracker.presentation.ProfileScreen
 import com.example.financetracker.presentation.StartScreen
-import com.example.financetracker.presentation.TransactionScreen
-import com.example.financetracker.presentation.EditCategoryScreen
+import com.example.financetracker.presentation.transaction.TransactionScreen
+import com.example.financetracker.presentation.category.EditCategoryScreen
 
 
 @SuppressLint("NewApi")
@@ -48,7 +48,9 @@ fun Navigation(modifier: Modifier) {
         composable("editTransaction/{transactionId}") { backStackEntry ->
             val transactionId = backStackEntry.arguments?.getString("transactionId")?.toIntOrNull()
             if (transactionId != null) {
-                EditTransactionScreen(modifier = modifier, transactionId = transactionId, navController = controller)
+                EditTransactionScreen(
+                    modifier = modifier, transactionId = transactionId, navController = controller
+                )
             }
         }
 

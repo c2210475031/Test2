@@ -1,32 +1,15 @@
-package com.example.financetracker.presentation
+package com.example.financetracker.presentation.category
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.financetracker.MainActivity
-import com.example.financetracker.database.AppDatabase
-import com.example.financetracker.database.model.Category
-import com.example.financetracker.database.model.CategoryType
-import com.example.financetracker.database.repository.TransactionRepository
-import com.example.financetracker.navigation.Screen
-import com.example.financetracker.viewmodel.GlobalViewModel
-import com.example.financetracker.viewmodel.GlobalViewModelFactory
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

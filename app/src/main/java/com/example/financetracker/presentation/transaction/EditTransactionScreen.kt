@@ -1,4 +1,4 @@
-package com.example.financetracker.presentation
+package com.example.financetracker.presentation.transaction
 
 
 import android.os.Build
@@ -7,26 +7,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.financetracker.MainActivity
-import com.example.financetracker.database.AppDatabase
-import com.example.financetracker.database.model.Category
-import com.example.financetracker.database.model.CategoryType
-import com.example.financetracker.database.repository.TransactionRepository
-import com.example.financetracker.navigation.Screen
-import com.example.financetracker.viewmodel.GlobalViewModel
-import com.example.financetracker.viewmodel.GlobalViewModelFactory
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 
@@ -43,7 +32,7 @@ fun EditTransactionScreen(modifier: Modifier, navController: NavController, tran
     var valueInput by remember { mutableStateOf(transaction.amount.toString()) }
     var dateInput by remember {
         mutableStateOf(
-            transaction.timestamp.atZone(java.time.ZoneId.systemDefault()).toLocalDate().format(
+            transaction.timestamp.atZone(ZoneId.systemDefault()).toLocalDate().format(
                 DateTimeFormatter.ISO_DATE)
         )
     }
@@ -128,7 +117,7 @@ fun EditTransactionScreen(modifier: Modifier, navController: NavController, tran
                 onClick = {
                     val updatedTransaction = transaction.copy(
                         amount = valueInput.toDoubleOrNull() ?: return@Button,
-                        timestamp = LocalDate.parse(dateInput).atStartOfDay(java.time.ZoneId.systemDefault()).toInstant(),
+                        timestamp = LocalDate.parse(dateInput).atStartOfDay(ZoneId.systemDefault()).toInstant(),
                         categoryId = selectedCategoryId ?: return@Button,
                         isPositive = isPositive
                     )

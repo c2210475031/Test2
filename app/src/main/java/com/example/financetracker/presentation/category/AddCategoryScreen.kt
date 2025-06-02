@@ -1,4 +1,4 @@
-package com.example.financetracker.presentation
+package com.example.financetracker.presentation.category
 
 import android.os.Build
 import androidx.annotation.RequiresApi
@@ -10,20 +10,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.financetracker.MainActivity
-import com.example.financetracker.database.AppDatabase
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.CategoryType
-import com.example.financetracker.database.model.User
-import com.example.financetracker.database.repository.TransactionRepository
 import com.example.financetracker.navigation.Screen
-import com.example.financetracker.viewmodel.GlobalViewModel
-import com.example.financetracker.viewmodel.GlobalViewModelFactory
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
