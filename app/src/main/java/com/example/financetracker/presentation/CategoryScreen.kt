@@ -29,7 +29,7 @@ fun CategoryScreen(
     navController: NavController,
 ) {
     val viewModel = MainActivity.globalViewModel
-    val categories by viewModel.allCategories.observeAsState(emptyList())
+    val categories by viewModel.userCategories.observeAsState(emptyList())
 
     Scaffold(
         topBar = {

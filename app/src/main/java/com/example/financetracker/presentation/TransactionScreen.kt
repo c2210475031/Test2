@@ -69,7 +69,7 @@ fun TransactionScreen(
 ) {
     val viewModel = MainActivity.globalViewModel
     val transactions by viewModel.userTransactions.observeAsState(initial = emptyList())
-    val categories by viewModel.allCategories.observeAsState(emptyList())
+    val categories by viewModel.userCategories.observeAsState(emptyList())
     val selectedFilter by viewModel.filter.collectAsState()
     var expanded by remember { mutableStateOf(false) }
 

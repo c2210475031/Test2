@@ -68,7 +68,7 @@ fun AddTransactionScreen(modifier: Modifier, navController: NavController) {
 
     val viewModel = MainActivity.globalViewModel
     val userId by viewModel.activeUserId.collectAsState()
-    val categories by viewModel.allCategories.observeAsState(emptyList())
+    val categories by viewModel.userCategories.observeAsState(emptyList())
 
     Scaffold(
         topBar = {

@@ -36,8 +36,8 @@ import java.time.format.DateTimeFormatter
 fun EditTransactionScreen(modifier: Modifier, navController: NavController, transactionId: Int) {
     val viewModel = MainActivity.globalViewModel
 
-    val transactions by viewModel.allTransactions.observeAsState(emptyList())
-    val categories by viewModel.allCategories.observeAsState(emptyList())
+    val transactions by viewModel.userTransactions.observeAsState(emptyList())
+    val categories by viewModel.userCategories.observeAsState(emptyList())
     val transaction = transactions.find { it.id == transactionId } ?: return
 
     var valueInput by remember { mutableStateOf(transaction.amount.toString()) }

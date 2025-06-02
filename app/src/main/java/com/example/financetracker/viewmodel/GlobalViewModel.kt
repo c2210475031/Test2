@@ -25,18 +25,12 @@ class GlobalViewModelFactory(
 
 class GlobalViewModel(
     private val repository: TransactionRepository
-) : ViewModel()
-{
+) : ViewModel() {
     private val _activeUserId = MutableStateFlow<Int?>(null)
     val activeUserId: StateFlow<Int?> = _activeUserId.asStateFlow()
 
     fun setActiveUser(userId: Int) {
         _activeUserId.value = userId
-    }
-
-    suspend fun insertUserAndReturnId(user: User): Int {
-        Log.i("GlobalViewModel", "Inserting user $user")
-        return repository.insertUser(user)
     }
 
     private val _allTransactionsFlow: StateFlow<List<Transaction>> =
@@ -48,21 +42,21 @@ class GlobalViewModel(
             )
 
     val allUsers: LiveData<List<User>> = repository.allUsers
-    val allTransactions: LiveData<List<Transaction>> = repository.allTransactions
-    val allCategories: LiveData<List<Category>> = repository.allCategories
 
-    val userTransactions: LiveData<List<Transaction>> =
-        activeUserId.flatMapLatest { userId ->
-            userId?.let { repository.getAllTransactionsOfUser(it).asFlow() } ?: flowOf(emptyList())
-        }.asLiveData()
+    val userTransactions: LiveData<List<Transaction>> = activeUserId.flatMapLatest { userId ->
+        userId?.let { repository.getAllTransactionsOfUser(it).asFlow() } ?: flowOf(emptyList())
+    }.asLiveData()
 
-    val userCategories: LiveData<List<Category>> =
-        activeUserId.flatMapLatest { userId ->
-            userId?.let { repository.getAllCategoriesOfUser(it).asFlow() } ?: flowOf(emptyList())
-        }.asLiveData()
+    val userCategories: LiveData<List<Category>> = activeUserId.flatMapLatest { userId ->
+        userId?.let { repository.getAllCategoriesOfUser(it).asFlow() } ?: flowOf(emptyList())
+    }.asLiveData()
 
     suspend fun getAllUsersOnce(): List<User> {
         return repository.getAllUsersOnce()
+    }
+
+    suspend fun insertUserAndReturnId(user: User): Int {
+        return repository.insertUser(user)
     }
 
     fun insertUser(user: User) {
