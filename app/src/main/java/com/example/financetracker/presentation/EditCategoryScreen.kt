@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.financetracker.MainActivity
 import com.example.financetracker.database.AppDatabase
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.CategoryType
@@ -27,23 +28,13 @@ import com.example.financetracker.viewmodel.GlobalViewModelFactory
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditCategoryScreen(categoryId: Int, navController: NavController) {
-    val context = LocalContext.current
-    val db = AppDatabase.getDatabase(context)
-    val viewModel: GlobalViewModel = viewModel(factory = GlobalViewModelFactory(TransactionRepository(db.transactionDao(), db.categoryDao())))
+    val viewModel = MainActivity.globalViewModel
 
     val categories by viewModel.allCategories.observeAsState(emptyList())
     val category = categories.find { it.id == categoryId }
-
-    //var name by remember { mutableStateOf(category?.name ?: "") }
-    //var limit by remember { mutableStateOf(category?.maxNegativeValue?.toString() ?: "-1") }
-
-
 
     if (category == null) {
         Text("Category not found")

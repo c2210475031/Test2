@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.financetracker.MainActivity
 import com.example.financetracker.database.AppDatabase
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.CategoryType
@@ -32,10 +33,8 @@ fun AddCategoryScreen(modifier: Modifier, navController: NavController) {
     var selectedType by remember { mutableStateOf(CategoryType.EXPENSE) }
     var maxLimitInput by remember { mutableStateOf("") }
 
-    val context = LocalContext.current.applicationContext
-    val db = AppDatabase.getDatabase(context)
-    val repository = TransactionRepository(db.transactionDao(), db.categoryDao(), db.userDao())
-    val viewModel: GlobalViewModel = viewModel(factory = GlobalViewModelFactory(repository))
+    val viewModel = MainActivity.globalViewModel
+    val userId by viewModel.activeUserId.collectAsState()
 
     Scaffold(
         topBar = {
@@ -54,13 +53,15 @@ fun AddCategoryScreen(modifier: Modifier, navController: NavController) {
                     }) {
                         Icon(Icons.Default.Home, contentDescription = "Exit")
                     }
-                } 
+                }
             )
         }
     ) { padding ->
-        Column(modifier = Modifier
-            .padding(padding)
-            .padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp)
+        ) {
 
             OutlinedTextField(
                 value = nameInput,
@@ -101,25 +102,24 @@ fun AddCategoryScreen(modifier: Modifier, navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
+                modifier = Modifier.fillMaxWidth(),
+                enabled = userId != null && nameInput.isNotBlank(),
                 onClick = {
                     val maxLimit = maxLimitInput.toDoubleOrNull() ?: -1.0
 
-                    //TODO Create/Query user and use its ID to create a new Category
-                    val user = User(name = "Hermann")
-                    if (nameInput.isNotBlank()) {
+                    if (nameInput.isNotBlank() && userId != null) {
                         val category = Category(
                             name = nameInput,
                             type = selectedType,
                             maxNegativeValue = maxLimit,
-                            userId = user.id
+                            userId = userId!!
                         )
                         viewModel.insertCategory(category)
-                        navController.popBackStack()
+                        navController.navigate(Screen.CategoryScreen.route)
                     }
-                },
-                modifier = Modifier.fillMaxWidth()
+                }
             ) {
-                Text("Save Category")
+                Text("Save")
             }
         }
     }

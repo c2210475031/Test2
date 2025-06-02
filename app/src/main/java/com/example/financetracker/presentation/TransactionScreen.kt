@@ -45,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.financetracker.MainActivity
 import com.example.financetracker.database.AppDatabase
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.Transaction
@@ -66,18 +67,9 @@ fun TransactionScreen(
     modifier: Modifier,
     navController: NavController,
 ) {
-    val context = LocalContext.current.applicationContext
-    val db = AppDatabase.getDatabase(context.applicationContext) // Replace with your real Application class
-    val repository = TransactionRepository(db.transactionDao(), db.categoryDao(), db.userDao())
-
-    val viewModel: GlobalViewModel = viewModel(
-        factory = GlobalViewModelFactory(repository)
-    )
-
-    val transactions by viewModel.transactions.collectAsState()
-
+    val viewModel = MainActivity.globalViewModel
+    val transactions by viewModel.userTransactions.observeAsState(initial = emptyList())
     val categories by viewModel.allCategories.observeAsState(emptyList())
-
     val selectedFilter by viewModel.filter.collectAsState()
     var expanded by remember { mutableStateOf(false) }
 
@@ -195,15 +187,12 @@ fun TransactionCard(transaction: Transaction, categories: List<Category>, onDele
             Button(
                 onClick = {
                     //navController.navigate("editTransaction/${transaction.ID}")
-                    navController.navigate(Screen.EditTransactionScreen.createRoute(transaction.ID))
+                    navController.navigate(Screen.EditTransactionScreen.createRoute(transaction.id))
                 }
             ) {
                 Text("Edit")
             }
-
-
         }
-
     }
 }
 

@@ -17,8 +17,12 @@ class TransactionRepository(
     val allTransactions: LiveData<List<Transaction>> = transactionDao.getAllTransactions()
     val allCategories: LiveData<List<Category>> = categoryDao.getAllCategories()
 
+    //suspend fun getAllUsersOnce(): List<User> = userDao.getAllUsersOnce()
+    suspend fun getAllUsersOnce(): List<User> {
+        return userDao.getAllUsersOnce()
+    }
     suspend fun getUser(userId: Int) = userDao.getUserById(userId)
-    suspend fun insertUser(user: User) = userDao.insertUser(user)
+    suspend fun insertUser(user: User):Int = userDao.insertUser(user).toInt()
     suspend fun deleteUser(user: User) = userDao.deleteUser(user)
     suspend fun updateUser(user: User) = userDao.updateUser(user)
 

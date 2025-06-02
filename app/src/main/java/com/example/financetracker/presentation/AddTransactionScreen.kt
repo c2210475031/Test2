@@ -30,6 +30,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.financetracker.MainActivity
 import com.example.financetracker.database.AppDatabase
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.CategoryType
@@ -64,14 +66,8 @@ fun AddTransactionScreen(modifier: Modifier, navController: NavController) {
     var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
     var expanded by remember { mutableStateOf(false) }
 
-    val context = LocalContext.current.applicationContext
-    val db = AppDatabase.getDatabase(context.applicationContext) // Replace with your real Application class
-    val repository = TransactionRepository(db.transactionDao(), db.categoryDao(), db.userDao())
-
-    val viewModel: GlobalViewModel = viewModel(
-        factory = GlobalViewModelFactory(repository)
-    )
-
+    val viewModel = MainActivity.globalViewModel
+    val userId by viewModel.activeUserId.collectAsState()
     val categories by viewModel.allCategories.observeAsState(emptyList())
 
     Scaffold(
@@ -120,7 +116,8 @@ fun AddTransactionScreen(modifier: Modifier, navController: NavController) {
 
             Column(modifier = Modifier.fillMaxWidth()) {
                 OutlinedTextField(
-                    value =  categories.find { it.id == selectedCategoryId }?.let { "${it.name} (ID: ${it.id})" } ?: "",
+                    value = categories.find { it.id == selectedCategoryId }
+                        ?.let { "${it.name} (ID: ${it.id})" } ?: "",
                     onValueChange = {},
                     label = { Text("Select Category") },
                     modifier = Modifier.fillMaxWidth(),
@@ -170,27 +167,24 @@ fun AddTransactionScreen(modifier: Modifier, navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
+                modifier = Modifier.fillMaxWidth(),
+                enabled = userId != null && valueInput.isNotBlank(),
                 onClick = {
-                    //TODO Create/Query user and use its ID to create a new Transaction
-                    val user = User(name = "Hermann")
-                    viewModel.insertUser(user)
-
-                    val category = Category(
-                        name = "Groceries", type = CategoryType.EXPENSE, maxNegativeValue = 0.0, userId = user.id
-                    )
-                    val transaction = Transaction(
-                        amount = valueInput.toDoubleOrNull() ?: 0.0,
-                        timestamp = Instant.now(),
-                        categoryId = selectedCategoryId ?: return@Button, // Skip if not selected
-                        isPositive = isPositive,
-                        userId = user.id
-                    )
-
-                    //viewModel.insertCategory(category)
-                    viewModel.insertTransaction(transaction) //TODO: MAKE SURE THAT A CATEGORY EXISTS BEFORE INSERTING A TRANSACTION BECAUSE OF FOREIGN-KEY DEPENDENCY
-                }, modifier = Modifier.fillMaxWidth()
+                    if (valueInput.isNotBlank() && userId != null) {
+                        val transaction = Transaction(
+                            amount = valueInput.toDoubleOrNull() ?: 0.0,
+                            timestamp = Instant.now(),
+                            categoryId = selectedCategoryId
+                                ?: return@Button, // Skip if not selected
+                            isPositive = isPositive,
+                            userId = userId!!
+                        )
+                        viewModel.insertTransaction(transaction)
+                        navController.navigate(Screen.TransactionScreen.route)
+                    }
+                }
             ) {
-                Text("Save Transaction")
+                Text("Save")
             }
         }
     }

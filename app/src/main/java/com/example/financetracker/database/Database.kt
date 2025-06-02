@@ -14,7 +14,7 @@ import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.User
 
 @TypeConverters(Converters::class)
-@Database(entities = [Transaction::class, Category::class, User::class], version = 1, exportSchema = false)
+@Database(entities = [Transaction::class, Category::class, User::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun categoryDao(): CategoryDao
@@ -30,7 +30,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "finance_database"
-                ).build()
+                ).fallbackToDestructiveMigration().build()
                 INSTANCE = instance
                 instance
             }

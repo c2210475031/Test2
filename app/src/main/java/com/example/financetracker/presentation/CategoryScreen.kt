@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.financetracker.MainActivity
 import com.example.financetracker.database.AppDatabase
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.repository.TransactionRepository
@@ -27,15 +28,7 @@ fun CategoryScreen(
     modifier: Modifier,
     navController: NavController,
 ) {
-
-    val context = LocalContext.current.applicationContext
-    val db = AppDatabase.getDatabase(context.applicationContext) // Replace with your real Application class
-    val repository = TransactionRepository(db.transactionDao(), db.categoryDao(), db.userDao())
-
-    val viewModel: GlobalViewModel = viewModel(
-        factory = GlobalViewModelFactory(repository)
-    )
-
+    val viewModel = MainActivity.globalViewModel
     val categories by viewModel.allCategories.observeAsState(emptyList())
 
     Scaffold(

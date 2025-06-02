@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.financetracker.MainActivity
 import com.example.financetracker.database.AppDatabase
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.CategoryType
@@ -33,14 +34,11 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditTransactionScreen(modifier: Modifier, navController: NavController, transactionId: Int) {
-    val context = LocalContext.current.applicationContext
-    val db = AppDatabase.getDatabase(context)
-    val repository = TransactionRepository(db.transactionDao(), db.categoryDao())
-    val viewModel: GlobalViewModel = viewModel(factory = GlobalViewModelFactory(repository))
+    val viewModel = MainActivity.globalViewModel
 
     val transactions by viewModel.allTransactions.observeAsState(emptyList())
     val categories by viewModel.allCategories.observeAsState(emptyList())
-    val transaction = transactions.find { it.ID == transactionId } ?: return
+    val transaction = transactions.find { it.id == transactionId } ?: return
 
     var valueInput by remember { mutableStateOf(transaction.amount.toString()) }
     var dateInput by remember {
