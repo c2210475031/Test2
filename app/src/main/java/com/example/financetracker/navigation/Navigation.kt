@@ -14,6 +14,7 @@ import com.example.financetracker.presentation.ProfileScreen
 import com.example.financetracker.presentation.StartScreen
 import com.example.financetracker.presentation.transaction.TransactionScreen
 import com.example.financetracker.presentation.category.EditCategoryScreen
+import com.example.financetracker.presentation.transaction.TransactionChartScreen
 
 
 @SuppressLint("NewApi")
@@ -43,6 +44,10 @@ fun Navigation(modifier: Modifier) {
 
         composable(route = Screen.AddCategoryScreen.route) {
             AddCategoryScreen(modifier = modifier, navController = controller)
+        }
+
+        composable(route = Screen.TransactionChartScreen.route) {
+            TransactionChartScreen(modifier = modifier, navController = controller)
         }
 
         composable("editTransaction/{transactionId}") { backStackEntry ->

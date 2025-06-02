@@ -8,6 +8,8 @@ sealed class Screen(val route: String) {
     object ProfileScreen: Screen(route = "profile")
     object AddCategoryScreen: Screen(route = "addCategories")
 
+    object TransactionChartScreen: Screen(route = "Graphics")
+
     object EditTransactionScreen : Screen("editTransaction/{transactionId}"){
         fun createRoute(transactionId: Int) = "editTransaction/$transactionId"
     }

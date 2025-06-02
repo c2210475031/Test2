@@ -56,6 +56,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.livedata.ktx)
 
+
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+
+
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
