@@ -14,7 +14,7 @@ import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.User
 
 @TypeConverters(Converters::class)
-@Database(entities = [Transaction::class, Category::class, User::class], version = 2, exportSchema = false)
+@Database(entities = [Transaction::class, Category::class, User::class], version = 3, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun categoryDao(): CategoryDao

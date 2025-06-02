@@ -5,10 +5,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -55,8 +58,12 @@ fun CategoryScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            items(categories) {category ->
-                CategoryCard(category, onDelete = { viewModel.deleteCategory(it)}, navController = navController)
+            items(categories) { category ->
+                CategoryCard(
+                    category,
+                    onDelete = { viewModel.deleteCategory(it) },
+                    navController = navController
+                )
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
@@ -64,41 +71,74 @@ fun CategoryScreen(
 }
 
 @Composable
-fun CategoryCard(category: Category, onDelete: (Category) -> Unit, navController: NavController) {
+fun CategoryCard(
+    category: Category,
+    onDelete: (Category) -> Unit,
+    navController: NavController
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(), elevation = CardDefaults.cardElevation(4.dp)
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors()
     ) {
-        Row {
-            Column(modifier = Modifier.padding(16.dp)) {
-               Text(text = category.name, style = MaterialTheme.typography.titleMedium)
-              Text(
-                  text = if (category.maxNegativeValue < 0) "No limit"
-                  else "Limit: €${category.maxNegativeValue}",
-                   style = MaterialTheme.typography.bodySmall
-               )
-               Text(text = "${category.id}", style = MaterialTheme.typography.bodySmall)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column() {
+                Text(
+                    text = category.name,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = if (category.maxNegativeValue < 0) "No limit"
+                    else "Limit: €${category.maxNegativeValue}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Text(text = "${category.id}", style = MaterialTheme.typography.bodySmall)
             }
 
             // Delete Button
-               Button(
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                IconButton(
                     onClick = { onDelete(category) },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
-                 Text("Delete", color = MaterialTheme.colorScheme.onError)
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete category",
+                    )
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Button(
-                    onClick = {
-                        navController.navigate(Screen.EditCategoryScreen.createRoute(category.id))
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Edit")
+                IconButton(onClick = {
+                    navController.navigate(
+                        Screen.EditCategoryScreen.createRoute(
+                            category.id
+                        )
+                    )
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit category"
+                    )
                 }
+            }
+//            Button(
+//                onClick = { onDelete(category) },
+//                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+//            ) {
+//                Text("Delete", color = MaterialTheme.colorScheme.onError)
+//            }
 
-
+//            Button(
+//                onClick = {
+//                    navController.navigate(Screen.EditCategoryScreen.createRoute(category.id))
+//                }, modifier = Modifier.weight(1f)
+//            ) {
+//                Text("Edit")
+//            }
         }
     }
 }

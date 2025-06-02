@@ -6,6 +6,7 @@ import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.*
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.Transaction
@@ -36,8 +37,14 @@ class GlobalViewModel(
         _activeUserId.value = userId
 
         viewModelScope.launch {
-            UserPreferences.saveUserId(context, userId)
+            try {
+                UserPreferences.saveUserId(context, userId)
+                Log.i("GlobalViewModel", "Active user: ${_activeUserId.value}")
+            } catch (e: Exception) {
+                Log.e("GlobalViewModel", "Error setting active user", e)
+            }
         }
+
     }
 
     private val _allTransactionsFlow: StateFlow<List<Transaction>> =
