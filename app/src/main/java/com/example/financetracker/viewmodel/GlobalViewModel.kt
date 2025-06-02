@@ -2,6 +2,7 @@
 
 package com.example.financetracker.viewmodel
 
+import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -10,6 +11,7 @@ import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.Transaction
 import com.example.financetracker.database.model.User
 import com.example.financetracker.database.repository.TransactionRepository
+import com.example.financetracker.datastore.UserPreferences
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -26,11 +28,16 @@ class GlobalViewModelFactory(
 class GlobalViewModel(
     private val repository: TransactionRepository
 ) : ViewModel() {
+
     private val _activeUserId = MutableStateFlow<Int?>(null)
     val activeUserId: StateFlow<Int?> = _activeUserId.asStateFlow()
 
-    fun setActiveUser(userId: Int) {
+    fun setActiveUser(context: Context, userId: Int) {
         _activeUserId.value = userId
+
+        viewModelScope.launch {
+            UserPreferences.saveUserId(context, userId)
+        }
     }
 
     private val _allTransactionsFlow: StateFlow<List<Transaction>> =
@@ -42,7 +49,6 @@ class GlobalViewModel(
             )
 
     val allUsers: LiveData<List<User>> = repository.allUsers
-
     val userTransactions: LiveData<List<Transaction>> = activeUserId.flatMapLatest { userId ->
         userId?.let { repository.getAllTransactionsOfUser(it).asFlow() } ?: flowOf(emptyList())
     }.asLiveData()

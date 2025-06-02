@@ -41,18 +41,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.financetracker.MainActivity
-import com.example.financetracker.database.AppDatabase
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.Transaction
-import com.example.financetracker.database.repository.TransactionRepository
 import com.example.financetracker.navigation.Screen
 import com.example.financetracker.viewmodel.GlobalViewModel
-import com.example.financetracker.viewmodel.GlobalViewModelFactory
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -72,9 +67,6 @@ fun TransactionScreen(
     val categories by viewModel.userCategories.observeAsState(emptyList())
     val selectedFilter by viewModel.filter.collectAsState()
     var expanded by remember { mutableStateOf(false) }
-
-    //   var startInput by remember { mutableStateOf("") }
-    //   var endInput by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
