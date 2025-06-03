@@ -10,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
@@ -19,8 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.example.financetracker.MainActivity
-import com.example.financetracker.database.model.Transaction
 import com.example.financetracker.database.model.Category
+import com.example.financetracker.database.model.Transaction
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
@@ -42,10 +41,11 @@ fun TransactionChartScreen(modifier: Modifier = Modifier, navController: NavCont
                 title = { Text("Transaction Charts") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back"
+                        )
                     }
-                }
-            )
+                })
         }
     ) { padding ->
         Column(
