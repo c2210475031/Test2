@@ -1,7 +1,5 @@
 package com.example.financetracker.presentation.transaction
 
-import android.graphics.Paint
-import android.graphics.drawable.Icon
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
@@ -22,10 +20,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
@@ -57,13 +53,11 @@ import androidx.navigation.NavController
 import com.example.financetracker.MainActivity
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.Transaction
-import com.example.financetracker.navigation.Screen
 import com.example.financetracker.viewmodel.GlobalViewModel
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeParseException
 
 
 @RequiresApi(Build.VERSION_CODES.O)

@@ -66,7 +66,8 @@ class MainActivity : ComponentActivity() {
         return TransactionRepository(
             db.transactionDao(),
             db.categoryDao(),
-            db.userDao()
+            db.userDao(),
+            db.templateDao()
         )
     }
 }

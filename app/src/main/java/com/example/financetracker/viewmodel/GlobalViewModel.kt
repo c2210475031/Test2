@@ -3,18 +3,28 @@
 package com.example.financetracker.viewmodel
 
 import android.content.Context
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.asFlow
+import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.Transaction
+import com.example.financetracker.database.model.TransactionTemplate
 import com.example.financetracker.database.model.User
 import com.example.financetracker.database.repository.TransactionRepository
 import com.example.financetracker.datastore.UserPreferences
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -33,6 +43,15 @@ class GlobalViewModel(
     private val _activeUserId = MutableStateFlow<Int?>(null)
     val activeUserId: StateFlow<Int?> = _activeUserId.asStateFlow()
 
+    private val _filter = MutableStateFlow("All")
+    val filter: StateFlow<String> = _filter.asStateFlow()
+
+    private val _startDate = MutableStateFlow<LocalDate?>(null)
+    val startDate: StateFlow<LocalDate?> = _startDate.asStateFlow()
+
+    private val _endDate = MutableStateFlow<LocalDate?>(null)
+    val endDate: StateFlow<LocalDate?> = _endDate.asStateFlow()
+
     fun setActiveUser(context: Context, userId: Int) {
         _activeUserId.value = userId
 
@@ -44,8 +63,11 @@ class GlobalViewModel(
                 Log.e("GlobalViewModel", "Error setting active user", e)
             }
         }
-
     }
+
+    fun setFilter(newFilter: String) = _filter.value == newFilter
+    fun setStartDate(date: LocalDate?) = _startDate.value == date
+    fun setEndDate(date: LocalDate?) = _endDate.value == date
 
     private val _allTransactionsFlow: StateFlow<List<Transaction>> =
         repository.allTransactions.asFlow().map { it } // No transformation needed here yet
@@ -56,12 +78,17 @@ class GlobalViewModel(
             )
 
     val allUsers: LiveData<List<User>> = repository.allUsers
+
     val userTransactions: LiveData<List<Transaction>> = activeUserId.flatMapLatest { userId ->
         userId?.let { repository.getAllTransactionsOfUser(it).asFlow() } ?: flowOf(emptyList())
     }.asLiveData()
 
     val userCategories: LiveData<List<Category>> = activeUserId.flatMapLatest { userId ->
         userId?.let { repository.getAllCategoriesOfUser(it).asFlow() } ?: flowOf(emptyList())
+    }.asLiveData()
+
+    val userTemplates: LiveData<List<TransactionTemplate>> = activeUserId.flatMapLatest { userId ->
+        userId?.let { repository.getAllTemplatesOfUser(it).asFlow() } ?: flowOf(emptyList())
     }.asLiveData()
 
     suspend fun getAllUsersOnce(): List<User> {
@@ -105,39 +132,6 @@ class GlobalViewModel(
         }
     }
 
-    fun insertCategory(category: Category) {
-        viewModelScope.launch {
-            try {
-                repository.insertCategory(category)
-                Log.i("GlobalViewModel", "Inserting Category succeeded")
-            } catch (e: Exception) {
-                Log.e("GlobalViewModel", "Inserting Category failed", e)
-            }
-        }
-    }
-
-    fun deleteCategory(category: Category) {
-        viewModelScope.launch {
-            try {
-                repository.deleteCategory(category)
-                Log.i("GlobalViewModel", "Deleting Category succeeded")
-            } catch (e: Exception) {
-                Log.e("GlobalViewModel", "Deleting Category failed", e)
-            }
-        }
-    }
-
-    fun updateCategory(category: Category) {
-        viewModelScope.launch {
-            try {
-                repository.updateCategory(category)
-                Log.i("GlobalViewModel", "Updating Category succeeded")
-            } catch (e: Exception) {
-                Log.e("GlobalViewModel", "Updating Category failed", e)
-            }
-        }
-    }
-
     fun insertTransaction(transaction: Transaction) {
         viewModelScope.launch {
             try {
@@ -145,17 +139,6 @@ class GlobalViewModel(
                 Log.i("GlobalViewModel", "Inserting of Transaction succeeded")
             } catch (e: Exception) {
                 Log.e("GlobalViewModel", "Inserting of Transaction failed", e)
-            }
-        }
-    }
-
-    fun deleteTransaction(transaction: Transaction) {
-        viewModelScope.launch {
-            try {
-                repository.deleteTransaction(transaction)
-                Log.i("GlobalViewModel", "Deleting Transaction succeeded")
-            } catch (e: Exception) {
-                Log.e("GlobalViewModel", "Deleting Transaction failed", e)
             }
         }
     }
@@ -171,49 +154,80 @@ class GlobalViewModel(
         }
     }
 
-    private val _filter = MutableStateFlow("All")
-    val filter: StateFlow<String> = _filter.asStateFlow()
-
-    private val _startDate = MutableStateFlow<LocalDate?>(null)
-    val startDate: StateFlow<LocalDate?> = _startDate.asStateFlow()
-
-    private val _endDate = MutableStateFlow<LocalDate?>(null)
-    val endDate: StateFlow<LocalDate?> = _endDate.asStateFlow()
-
-    fun setStartDate(date: LocalDate?) {
-        _startDate.value = date
-    }
-
-    fun setEndDate(date: LocalDate?) {
-        _endDate.value = date
-    }
-
-    fun setFilter(newFilter: String) {
-        _filter.value = newFilter
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    var transactions: StateFlow<List<Transaction>> =
-        combine(_allTransactionsFlow, _filter, _startDate, _endDate) { all, type, start, end ->
-            var filtered = all
-
-            filtered = when (type) {
-                "Income" -> filtered.filter { it.isPositive }
-                "Expenses" -> filtered.filter { !it.isPositive }
-                else -> filtered
+    fun deleteTransaction(transaction: Transaction) {
+        viewModelScope.launch {
+            try {
+                repository.deleteTransaction(transaction)
+                Log.i("GlobalViewModel", "Deleting Transaction succeeded")
+            } catch (e: Exception) {
+                Log.e("GlobalViewModel", "Deleting Transaction failed", e)
             }
+        }
+    }
 
-            if (start != null && end != null) {
-                filtered = filtered.filter {
-                    val date = it.timestamp.atZone(java.time.ZoneId.systemDefault()).toLocalDate()
-                    !date.isBefore(start) && !date.isAfter(end)
-                }
+    fun insertCategory(category: Category) {
+        viewModelScope.launch {
+            try {
+                repository.insertCategory(category)
+                Log.i("GlobalViewModel", "Inserting Category succeeded")
+            } catch (e: Exception) {
+                Log.e("GlobalViewModel", "Inserting Category failed", e)
             }
+        }
+    }
 
-            filtered
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    fun updateCategory(category: Category) {
+        viewModelScope.launch {
+            try {
+                repository.updateCategory(category)
+                Log.i("GlobalViewModel", "Updating Category succeeded")
+            } catch (e: Exception) {
+                Log.e("GlobalViewModel", "Updating Category failed", e)
+            }
+        }
+    }
+
+    fun deleteCategory(category: Category) {
+        viewModelScope.launch {
+            try {
+                repository.deleteCategory(category)
+                Log.i("GlobalViewModel", "Deleting Category succeeded")
+            } catch (e: Exception) {
+                Log.e("GlobalViewModel", "Deleting Category failed", e)
+            }
+        }
+    }
+
+    fun insertTemplate(template: TransactionTemplate) {
+        viewModelScope.launch {
+            try {
+                repository.insertTemplate(template)
+                Log.i("GlobalViewModel", "Inserting Template succeeded")
+            } catch (e: Exception) {
+                Log.e("GlobalViewModel", "Inserting Template failed", e)
+            }
+        }
+    }
+
+    fun deleteTemplate(template: TransactionTemplate) {
+        viewModelScope.launch {
+            try {
+                repository.deleteTemplate(template)
+                Log.i("GlobalViewModel", "Deleting Template succeeded")
+            } catch (e: Exception) {
+                Log.e("GlobalViewModel", "Deleting Template failed", e)
+            }
+        }
+    }
+
+    fun updateTemplate(template: TransactionTemplate) {
+        viewModelScope.launch {
+            try {
+                repository.updateTemplate(template)
+                Log.i("GlobalViewModel", "Updating Template succeeded")
+            } catch (e: Exception) {
+                Log.e("GlobalViewModel", "Updating Template failed", e)
+            }
+        }
+    }
 }
