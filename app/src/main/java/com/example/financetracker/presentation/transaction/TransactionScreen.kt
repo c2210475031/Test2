@@ -1,7 +1,10 @@
 package com.example.financetracker.presentation.transaction
 
+import android.graphics.Paint
+import android.graphics.drawable.Icon
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,6 +18,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -22,12 +29,15 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -40,6 +50,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -68,27 +79,32 @@ fun TransactionScreen(
     val selectedFilter by viewModel.filter.collectAsState()
     var expanded by remember { mutableStateOf(false) }
 
+    var showCreateDialog by remember { mutableStateOf(false) }
+    val userId by viewModel.activeUserId.collectAsState()
+
+    var showEditDialog by remember { mutableStateOf(false) }
+    var selectedTransaction by remember { mutableStateOf<Transaction?>(null) }
+
     Scaffold(
         topBar = {
             Column {
-                TopAppBar(
-                    title = { Text("Transactions") },
-                    actions = {
-                        IconButton(onClick = {
-                            navController.navigate(Screen.StartScreen.route) {
-                                popUpTo(Screen.StartScreen.route) { inclusive = true }
-                            }
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Home,
-                                contentDescription = "Exit",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = {navController.popBackStack()}) {Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")}
-                    })
+                TopAppBar(title = { Text("Transactions") }, actions = {
+                    IconButton(onClick = {
+                        showCreateDialog = true
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Home",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }, navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back"
+                        )
+                    }
+                })
             }
         }
 
@@ -104,17 +120,12 @@ fun TransactionScreen(
                     Text("Type: $selectedFilter")
                 }
                 DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
+                    expanded = expanded, onDismissRequest = { expanded = false }) {
                     listOf("All", "Income", "Expenses").forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option) },
-                            onClick = {
-                                viewModel.setFilter(option)
-                                expanded = false
-                            }
-                        )
+                        DropdownMenuItem(text = { Text(option) }, onClick = {
+                            viewModel.setFilter(option)
+                            expanded = false
+                        })
                     }
                 }
             }
@@ -122,33 +133,65 @@ fun TransactionScreen(
             // Date Range Filter
             DateFilterSection(viewModel)
 
-
-
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
                 items(transactions) { transaction ->
-                    TransactionCard(transaction, categories, onDelete = { viewModel.deleteTransaction(it) }, navController = navController)
+                    TransactionCard(
+                        transaction = transaction,
+                        categories = categories,
+                        onDelete = { viewModel.deleteTransaction(it) },
+                        onEdit = {
+                            selectedTransaction = it
+                            showEditDialog = true
+                        }
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
+            }
+
+            if (showCreateDialog && userId != null) {
+                val userId by viewModel.activeUserId.collectAsState()
+                val categories by viewModel.userCategories.observeAsState(emptyList())
+
+                if (userId != null) {
+                    CreateOrEditTransactionDialog(
+                        transaction = null,
+                        categories = categories,
+                        onDismiss = { showCreateDialog = false },
+                        onSubmit = {
+                            viewModel.insertTransaction(it)
+                            showCreateDialog = false
+                        },
+                        userId = userId!!
+                    )
+                }
+            }
+
+            if (showEditDialog && selectedTransaction != null) {
+                EditTransactionDialog(
+                    transaction = selectedTransaction!!,
+                    categories = categories,
+                    onDismiss = { showEditDialog = false },
+                    onSave = {
+                        viewModel.updateTransaction(it)
+                        showEditDialog = false
+                    }
+                )
             }
         }
     }
 }
 
-// Helper to parse input
-@RequiresApi(Build.VERSION_CODES.O)
-fun String.toLocalDateOrNull(): LocalDate? =
-    try {
-        LocalDate.parse(this, DateTimeFormatter.ISO_DATE)
-    } catch (e: DateTimeParseException) {
-        null
-    }
-
 @Composable
-fun TransactionCard(transaction: Transaction, categories: List<Category>, onDelete: (Transaction)-> Unit, navController: NavController) {
+fun TransactionCard(
+    transaction: Transaction,
+    categories: List<Category>,
+    onDelete: (Transaction) -> Unit,
+    onEdit: (Transaction) -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(4.dp)
@@ -158,36 +201,248 @@ fun TransactionCard(transaction: Transaction, categories: List<Category>, onDele
                 text = "${if (transaction.isPositive) "+" else "-"} €${transaction.amount}",
                 color = if (transaction.isPositive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
             )
-            Text(text = "${transaction.timestamp}", style = MaterialTheme.typography.bodySmall)
-            Text(text = "${transaction.categoryId}", style = MaterialTheme.typography.bodySmall)
-            var x = "yyyy-MM-dd";
-            for (temp:Category in categories){
-                if(temp.id == transaction.categoryId) x = "${temp.name}";
-            }
-            Text(text = x, style = MaterialTheme.typography.bodySmall)
 
-            Spacer(modifier = Modifier.height(8.dp))
+            val categoryName = categories.find { it.id == transaction.categoryId }?.name ?: "Unknown"
+            Text(text = categoryName, style = MaterialTheme.typography.bodySmall)
 
-            // Delete Button
-            Button(
-                onClick = { onDelete(transaction) },
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-            ) {
-                Text("Delete", color = MaterialTheme.colorScheme.onError)
-            }
-
-            Button(
-                onClick = {
-                    //navController.navigate("editTransaction/${transaction.ID}")
-                    navController.navigate(Screen.EditTransactionScreen.createRoute(transaction.id))
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                IconButton(onClick = {onEdit(transaction)}) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit transaction",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
-            ) {
-                Text("Edit")
+
+                IconButton(onClick = {onDelete(transaction)}) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Delete transaction",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         }
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun EditTransactionDialog(
+    transaction: Transaction,
+    categories: List<Category>,
+    onDismiss: () -> Unit,
+    onSave: (Transaction) -> Unit
+) {
+    var valueInput by remember { mutableStateOf(transaction.amount.toString()) }
+    var dateInput by remember {
+        mutableStateOf(
+            transaction.timestamp.atZone(ZoneId.systemDefault()).toLocalDate().format(DateTimeFormatter.ISO_DATE)
+        )
+    }
+    var selectedCategoryId by remember { mutableStateOf(transaction.categoryId) }
+    var isPositive by remember { mutableStateOf(transaction.isPositive) }
+    var expanded by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Transaction") },
+        confirmButton = {
+            TextButton(onClick = {
+                val updated = transaction.copy(
+                    amount = valueInput.toDoubleOrNull() ?: transaction.amount,
+                    timestamp = LocalDate.parse(dateInput).atStartOfDay(ZoneId.systemDefault()).toInstant(),
+                    categoryId = selectedCategoryId,
+                    isPositive = isPositive
+                )
+                onSave(updated)
+            }) { Text("Save") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = valueInput,
+                    onValueChange = { valueInput = it },
+                    label = { Text("Amount") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                DatePickerField("Date", dateInput, onDateSelected = { dateInput = it })
+
+                Spacer(Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = categories.find { it.id == selectedCategoryId }?.name ?: "",
+                    onValueChange = {},
+                    label = { Text("Category") },
+                    readOnly = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    trailingIcon = {
+                        IconButton(onClick = { expanded = true }) {
+                            Icon(Icons.Default.DateRange, contentDescription = "Select category")
+                        }
+                    }
+                )
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    categories.forEach { category ->
+                        DropdownMenuItem(
+                            text = { Text(category.name) },
+                            onClick = {
+                                selectedCategoryId = category.id
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(8.dp))
+
+                Row {
+                    Text("Type:")
+                    Spacer(modifier = Modifier.width(8.dp))
+                    FilterChip(
+                        selected = isPositive,
+                        onClick = { isPositive = true },
+                        label = { Text("Income") })
+                    Spacer(modifier = Modifier.width(8.dp))
+                    FilterChip(
+                        selected = !isPositive,
+                        onClick = { isPositive = false },
+                        label = { Text("Expense") })
+                }
+            }
+        }
+    )
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun CreateOrEditTransactionDialog(
+    transaction: Transaction? = null, // null means create mode
+    categories: List<Category>,
+    onDismiss: () -> Unit,
+    onSubmit: (Transaction) -> Unit,
+    userId: Int
+) {
+    val isEdit = transaction != null
+
+    var valueInput by remember { mutableStateOf(transaction?.amount?.toString() ?: "") }
+    var dateInput by remember {
+        mutableStateOf(
+            transaction?.timestamp?.atZone(ZoneId.systemDefault())?.toLocalDate()
+                ?.format(DateTimeFormatter.ISO_DATE) ?: LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+        )
+    }
+    var selectedCategoryId by remember { mutableStateOf(transaction?.categoryId ?: categories.firstOrNull()?.id ?: -1) }
+    var isPositive by remember { mutableStateOf(transaction?.isPositive ?: true) }
+    var expanded by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (isEdit) "Edit Transaction" else "Add Transaction") },
+        confirmButton = {
+            TextButton(onClick = {
+                val amount = valueInput.toDoubleOrNull() ?: return@TextButton
+                val date = try {
+                    LocalDate.parse(dateInput)
+                } catch (e: Exception) {
+                    return@TextButton
+                }
+                val instant = date.atStartOfDay(ZoneId.systemDefault()).toInstant()
+                val newTransaction = Transaction(
+                    id = transaction?.id ?: 0,
+                    amount = amount,
+                    timestamp = instant,
+                    categoryId = selectedCategoryId,
+                    isPositive = isPositive,
+                    userId = transaction?.userId ?: userId
+                )
+                onSubmit(newTransaction)
+            }) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = valueInput,
+                    onValueChange = { valueInput = it },
+                    label = { Text("Amount") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                DatePickerField(
+                    label = "Date",
+                    selectedDate = dateInput,
+                    onDateSelected = { dateInput = it }
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = categories.find { it.id == selectedCategoryId }?.name ?: "",
+                    onValueChange = {},
+                    label = { Text("Category") },
+                    readOnly = true,
+                    trailingIcon = {
+                        IconButton(onClick = { expanded = true }) {
+                            Icon(Icons.Default.DateRange, contentDescription = "Select category")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    categories.forEach { category ->
+                        DropdownMenuItem(
+                            text = { Text(category.name) },
+                            onClick = {
+                                selectedCategoryId = category.id
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Type:")
+                    Spacer(modifier = Modifier.width(8.dp))
+                    FilterChip(
+                        selected = isPositive,
+                        onClick = { isPositive = true },
+                        label = { Text("Income") })
+                    Spacer(modifier = Modifier.width(8.dp))
+                    FilterChip(
+                        selected = !isPositive,
+                        onClick = { isPositive = false },
+                        label = { Text("Expense") })
+                }
+            }
+        }
+    )
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -203,8 +458,7 @@ fun DateFilterSection(viewModel: GlobalViewModel) {
     Column(modifier = Modifier.padding(16.dp)) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Button(
-                onClick = { showStartPicker = true },
-                modifier = Modifier.weight(1f)
+                onClick = { showStartPicker = true }, modifier = Modifier.weight(1f)
             ) {
                 Text("Start: ${startDate?.format(formatter) ?: "Select"}")
             }
@@ -212,8 +466,7 @@ fun DateFilterSection(viewModel: GlobalViewModel) {
             Spacer(modifier = Modifier.width(8.dp))
 
             Button(
-                onClick = { showEndPicker = true },
-                modifier = Modifier.weight(1f)
+                onClick = { showEndPicker = true }, modifier = Modifier.weight(1f)
             ) {
                 Text("End: ${endDate?.format(formatter) ?: "Select"}")
             }
@@ -221,23 +474,17 @@ fun DateFilterSection(viewModel: GlobalViewModel) {
     }
 
     if (showStartPicker) {
-        DatePickerDialog(
-            onDismissRequest = { showStartPicker = false },
-            onDateChange = {
-                viewModel.setStartDate(it)
-                showStartPicker = false
-            }
-        )
+        DatePickerDialog(onDismissRequest = { showStartPicker = false }, onDateChange = {
+            viewModel.setStartDate(it)
+            showStartPicker = false
+        })
     }
 
     if (showEndPicker) {
-        DatePickerDialog(
-            onDismissRequest = { showEndPicker = false },
-            onDateChange = {
-                viewModel.setEndDate(it)
-                showEndPicker = false
-            }
-        )
+        DatePickerDialog(onDismissRequest = { showEndPicker = false }, onDateChange = {
+            viewModel.setEndDate(it)
+            showEndPicker = false
+        })
     }
 }
 
@@ -246,34 +493,91 @@ fun DateFilterSection(viewModel: GlobalViewModel) {
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun DatePickerDialog(
-    onDismissRequest: () -> Unit,
-    onDateChange: (LocalDate) -> Unit
+    onDismissRequest: () -> Unit, onDateChange: (LocalDate) -> Unit
 ) {
     val datePickerState = rememberDatePickerState()
 
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        confirmButton = {
-            TextButton(onClick = {
-                val millis = datePickerState.selectedDateMillis
-                if (millis != null) {
-                    val selectedDate = Instant.ofEpochMilli(millis)
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate()
-                    onDateChange(selectedDate)
-                }
-            }) {
-                Text("OK")
+    AlertDialog(onDismissRequest = onDismissRequest, confirmButton = {
+        TextButton(onClick = {
+            val millis = datePickerState.selectedDateMillis
+            if (millis != null) {
+                val selectedDate =
+                    Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+                onDateChange(selectedDate)
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text("Cancel")
-            }
-        },
-        title = { Text("Pick a Date") },
-        text = {
-            DatePicker(state = datePickerState)
+        }) {
+            Text("OK")
         }
-    )
+    }, dismissButton = {
+        TextButton(onClick = onDismissRequest) {
+            Text("Cancel")
+        }
+    }, title = { Text("Pick a Date") }, text = {
+        DatePicker(state = datePickerState)
+    })
+}
+
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun DatePickerField(
+    label: String, selectedDate: String, onDateSelected: (String) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    OutlinedTextField(
+        value = selectedDate,
+        onValueChange = {},
+        label = { Text(label) },
+        modifier = Modifier.fillMaxWidth(),
+        readOnly = true,
+        trailingIcon = {
+            IconButton(onClick = { showDialog = true }) {
+                Icon(Icons.Default.DateRange, contentDescription = "Pick date")
+            }
+        })
+
+    if (showDialog) {
+        DatePickerDialog(
+            initialDate = selectedDate,
+            onDismiss = { showDialog = false },
+            onDateSelected = {
+                onDateSelected(it)
+                showDialog = false
+            })
+    }
+}
+
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@RequiresApi(Build.VERSION_CODES.O)
+@Composable
+fun DatePickerDialog(
+    initialDate: String, onDismiss: () -> Unit, onDateSelected: (String) -> Unit
+) {
+    val current = try {
+        LocalDate.parse(initialDate)
+    } catch (e: Exception) {
+        LocalDate.now()
+    }
+
+    val state =
+        rememberDatePickerState(initialSelectedDateMillis = current.toEpochDay() * 24 * 60 * 60 * 1000)
+
+    DatePickerDialog(onDismissRequest = onDismiss, confirmButton = {
+        TextButton(
+            onClick = {
+                val selectedMillis = state.selectedDateMillis ?: return@TextButton
+                val selectedDate = LocalDate.ofEpochDay(selectedMillis / (24 * 60 * 60 * 1000))
+                onDateSelected(selectedDate.toString())
+            }) {
+            Text("OK")
+        }
+    }, dismissButton = {
+        TextButton(onClick = onDismiss) {
+            Text("Cancel")
+        }
+    }) {
+        DatePicker(state = state)
+    }
 }

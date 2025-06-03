@@ -51,7 +51,6 @@ import com.example.financetracker.database.model.CurrencyType
 import com.example.financetracker.database.model.User
 import kotlinx.coroutines.delay
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(modifier: Modifier, navController: NavController) {
