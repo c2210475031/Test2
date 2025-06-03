@@ -1,27 +1,40 @@
 package com.example.financetracker.presentation.category
 
+import android.graphics.Color
+import android.view.ViewGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.example.financetracker.MainActivity
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.CategoryType
+import com.example.financetracker.database.model.Transaction
 import com.example.financetracker.database.model.User
 import com.example.financetracker.navigation.Screen
 import com.example.financetracker.presentation.CreateUserDialog
+import com.github.mikephil.charting.charts.PieChart
+import com.github.mikephil.charting.data.PieData
+import com.github.mikephil.charting.data.PieDataSet
+import com.github.mikephil.charting.data.PieEntry
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -120,11 +133,17 @@ fun CategoryCard(
     onDelete: (Category) -> Unit,
     onEdit: (Category) -> Unit
 ) {
+    val viewModel = MainActivity.globalViewModel
+    val transactions by viewModel.userTransactions.observeAsState(emptyList())
+
+    var showChartDialog by remember { mutableStateOf(false) }
+
+    val categoryTransactions = transactions.filter { it.categoryId == category.id }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(4.dp),
         colors = CardDefaults.cardColors()
-
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
@@ -132,6 +151,8 @@ fun CategoryCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
+
+
                 Text(
                     text = category.name,
                     style = MaterialTheme.typography.titleMedium
@@ -161,7 +182,38 @@ fun CategoryCard(
                         tint = MaterialTheme.colorScheme.error
                     )
                 }
+
+                IconButton(onClick = { showChartDialog = true }) {
+                    Icon(Icons.Default.Info, contentDescription = "Show chart")
+                }
             }
+        }
+
+        if (showChartDialog) {
+            AlertDialog(
+                onDismissRequest = { showChartDialog = false },
+                confirmButton = {
+                    TextButton(onClick = { showChartDialog = false }) {
+                        Text("Close")
+                    }
+                },
+                title = { Text("Category: ${category.name}") },
+                text = {
+                    Column {
+                        Text("Budget Transactions", style = MaterialTheme.typography.titleMedium)
+                        MPAndroidPieChart(
+                            transactions = categoryTransactions.filter { it.isPositive },
+                            chartLabel = "Budget"
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        Text("Cost Transactions", style = MaterialTheme.typography.titleMedium)
+                        MPAndroidPieChart(
+                            transactions = categoryTransactions.filter { !it.isPositive },
+                            chartLabel = "Cost"
+                        )
+                    }
+                }
+            )
         }
     }
 }
@@ -292,5 +344,47 @@ fun EditCategoryDialog(
                 )
             }
         }
+    )
+}
+
+@Composable
+fun MPAndroidPieChart(transactions: List<Transaction>, chartLabel: String) {
+    val context = LocalContext.current
+
+    AndroidView(
+        factory = {
+            PieChart(context).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    500
+                )
+
+                val entries = transactions.mapIndexed { index, tx ->
+                    PieEntry(tx.amount.toFloat(), "T${index + 1}")
+                }
+
+                val dataSet = PieDataSet(entries, chartLabel).apply {
+                    setColors(
+                        Color.rgb(76, 175, 80),
+                        Color.rgb(244, 67, 54),
+                        Color.rgb(33, 150, 243),
+                        Color.rgb(255, 193, 7)
+                    )
+                    valueTextColor = Color.BLACK
+                    valueTextSize = 12f
+                }
+
+                val pieData = PieData(dataSet)
+                data = pieData
+
+                description.isEnabled = false
+                isDrawHoleEnabled = true
+                setUsePercentValues(true)
+                animateY(1000)
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(250.dp)
     )
 }
