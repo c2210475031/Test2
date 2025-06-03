@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
@@ -62,23 +63,37 @@ fun TransactionChartScreen(modifier: Modifier = Modifier, navController: NavCont
     }
 }
 
+
 @Composable
 fun BarChartView(
     context: Context,
     transactions: List<Transaction>,
     categories: List<Category>
 ) {
-    // Group transactions by category ID and sum them
-    val categorySums = transactions.groupBy { it.categoryId }
-        .mapValues { (_, txs) -> txs.sumOf { it.amount.toDouble() } }
+    // Get category names mapped to indices
+    val categoryIdToName = categories.associateBy({ it.id }, { it.name })
 
-    val categoryNames = mutableListOf<String>()
-    val barEntries = mutableListOf<BarEntry>()
+    val categoryIds = categoryIdToName.keys.sorted()
+    val categoryNames = categoryIds.map { categoryIdToName[it] ?: "Unknown" }
 
-    categorySums.entries.forEachIndexed { index, (categoryId, sum) ->
-        val categoryName = categories.find { it.id == categoryId }?.name ?: "Unknown"
-        categoryNames.add(categoryName)
-        barEntries.add(BarEntry(index.toFloat(), sum.toFloat()))
+    val budgetEntries = mutableListOf<BarEntry>()
+    val costEntries = mutableListOf<BarEntry>()
+
+    categoryIds.forEachIndexed { index, categoryId ->
+        val transactionsInCategory = transactions.filter { it.categoryId == categoryId }
+
+        val budgetSum = transactionsInCategory
+            .filter { it.isPositive }
+            .sumOf { it.amount }
+            .toFloat()
+
+        val costSum = transactionsInCategory
+            .filter { !it.isPositive }
+            .sumOf { it.amount }
+            .toFloat()
+
+        budgetEntries.add(BarEntry(index.toFloat(), budgetSum))
+        costEntries.add(BarEntry(index.toFloat(), costSum))
     }
 
     AndroidView(
@@ -88,26 +103,48 @@ fun BarChartView(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     600
                 )
-                val dataSet = BarDataSet(barEntries, "Categories").apply {
-                    color = Color.BLUE
+
+                val budgetDataSet = BarDataSet(budgetEntries, "Budget").apply {
+                    color = Color.GREEN
                     valueTextColor = Color.BLACK
                     valueTextSize = 12f
                 }
 
-                data = BarData(dataSet)
-                description.isEnabled = false
+                val costDataSet = BarDataSet(costEntries, "Cost").apply {
+                    color = Color.RED
+                    valueTextColor = Color.BLACK
+                    valueTextSize = 12f
+                }
 
-                xAxis.valueFormatter = IndexAxisValueFormatter(categoryNames)
-                xAxis.position = XAxis.XAxisPosition.BOTTOM
-                xAxis.granularity = 1f
-                xAxis.setDrawGridLines(false)
+                val barData = BarData(budgetDataSet, costDataSet)
+                val groupSpace = 0.2f
+                val barSpace = 0.05f
+                val barWidth = 0.35f
+
+                barData.barWidth = barWidth
+                data = barData
+
+                xAxis.apply {
+                    valueFormatter = IndexAxisValueFormatter(categoryNames)
+                    position = XAxis.XAxisPosition.BOTTOM
+                    granularity = 1f
+                    setDrawGridLines(false)
+                    axisMinimum = 0f
+                    axisMaximum = categoryNames.size.toFloat()
+                }
 
                 axisRight.isEnabled = false
+                description.isEnabled = false
                 animateY(1000)
+
+                groupBars(0f, groupSpace, barSpace)
+                invalidate()
             }
         },
         modifier = Modifier
             .fillMaxWidth()
-            .height(300.dp)
+            .height(350.dp)
     )
 }
+
+
