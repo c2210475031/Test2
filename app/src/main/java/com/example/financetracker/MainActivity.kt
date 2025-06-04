@@ -41,9 +41,8 @@ class MainActivity : ComponentActivity() {
             Log.i("MainActivity", "All users: $allUsers")
 
             if (allUsers.isNotEmpty()) {
-                val user = allUsers.first()
-                UserPreferences.saveUserId(applicationContext, user.id)
-                globalViewModel.setActiveUser(applicationContext, user.id)
+                val user = UserPreferences.loadUserId(applicationContext)
+                globalViewModel.setActiveUser(applicationContext, user)
             } else {
                 val newUser = User(name = "Default User")
                 val newUserId = globalViewModel.insertUserAndReturnId(newUser)

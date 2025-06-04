@@ -35,13 +35,13 @@ class GlobalViewModel(
     private val _activeUser = MutableStateFlow<User?>(null)
     val activeUser: StateFlow<User?> = _activeUser.asStateFlow()
 
-    fun setActiveUser(context: Context, userId: Int) {
+    fun setActiveUser(context: Context, userId: Int?) {
         viewModelScope.launch {
             val users = repository.getAllUsersOnce()
             val user = users.find { it.id == userId }
             _activeUserId.value = userId
             _activeUser.value = user
-            UserPreferences.saveUserId(context, userId)
+            UserPreferences.saveUserId(context, userId!!)
         }
     }
 

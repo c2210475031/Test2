@@ -5,15 +5,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.financetracker.MainActivity
 import com.example.financetracker.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StartScreen(modifier: Modifier, navController: NavController) {
+
+    val viewModel = MainActivity.globalViewModel
+    val activeUser by viewModel.activeUser.collectAsState()
+
     Scaffold(
         topBar = {
             Column {
@@ -46,7 +53,7 @@ fun StartScreen(modifier: Modifier, navController: NavController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Welcome to Finance Tracker", style = MaterialTheme.typography.headlineSmall)
+            Text("Welcome ${activeUser?.name}!", style = MaterialTheme.typography.headlineSmall)
 
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = { navController.navigate(Screen.TransactionScreen.route) }) {
