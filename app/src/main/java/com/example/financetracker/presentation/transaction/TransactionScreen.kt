@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.financetracker.MainActivity
 import com.example.financetracker.database.model.Category
+import com.example.financetracker.database.model.CurrencyType
 import com.example.financetracker.database.model.Transaction
 import com.example.financetracker.viewmodel.GlobalViewModel
 import java.time.Instant
@@ -76,15 +77,12 @@ fun TransactionScreen(
     val selectedCategoryId by viewModel.selectedCategoryId.collectAsState()
     var expandedCategorySelector by remember { mutableStateOf(false) }
 
+    val activeUser by viewModel.activeUser.collectAsState()
+    val preferredCurrencyType = activeUser?.preferredCurrency
 
     var showCreateDialog by remember { mutableStateOf(false) }
-    val userId by viewModel.activeUserId.collectAsState()
-
     var showEditDialog by remember { mutableStateOf(false) }
     var selectedTransaction by remember { mutableStateOf<Transaction?>(null) }
-
-
-
 
     Scaffold(
         topBar = {
@@ -116,119 +114,125 @@ fun TransactionScreen(
                 .fillMaxSize()
         ) {
             // Type Filter
-            Box(modifier = Modifier.padding(16.dp)) {
-                Button(onClick = { expanded = true }) {
-                    Text("Type: $selectedFilter")
-                }
-                DropdownMenu(
-                    expanded = expanded, onDismissRequest = { expanded = false }) {
-                    listOf("All", "Budget", "Cost").forEach { option ->
-                        DropdownMenuItem(text = { Text(option) }, onClick = {
-                            viewModel.setFilter(option)
-                            expanded = false
-                        })
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+
+                Box(modifier = Modifier.padding(16.dp)) {
+                    Button(onClick = { expanded = true }) {
+                        Text("Type: $selectedFilter")
+                    }
+                    DropdownMenu(
+                        expanded = expanded, onDismissRequest = { expanded = false }) {
+                        listOf("All", "Budget", "Cost").forEach { option ->
+                            DropdownMenuItem(text = { Text(option) }, onClick = {
+                                viewModel.setFilter(option)
+                                expanded = false
+                            })
+                        }
                     }
                 }
-            }
 
-            Box(modifier = Modifier.padding(16.dp)) {
-                Button(onClick = { expandedCategorySelector = true }) {
-                    Text("Category: $selectedFilter")
-                }
-                DropdownMenu(
-                    expanded = expandedCategorySelector,
-                    onDismissRequest = { expandedCategorySelector = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("All Categories") },
-                        onClick = {
-                            viewModel.setSelectedCategoryId(null)
-                            expandedCategorySelector = false
-                        }
-                    )
-                    categories.forEach { category ->
+                Box(modifier = Modifier.padding(16.dp)) {
+                    Button(onClick = { expandedCategorySelector = true }) {
+                        Text("Category: $selectedFilter") //TODO: TEXT TO BE A CATEGORY, NOT TYPE
+                    }
+                    DropdownMenu(
+                        expanded = expandedCategorySelector,
+                        onDismissRequest = { expandedCategorySelector = false }
+                    ) {
                         DropdownMenuItem(
-                            text = { Text(category.name) },
+                            text = { Text("All Categories") },
                             onClick = {
-                                viewModel.setSelectedCategoryId(category.id)
+                                viewModel.setSelectedCategoryId(null)
                                 expandedCategorySelector = false
                             }
                         )
+                        categories.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text(category.name) },
+                                onClick = {
+                                    viewModel.setSelectedCategoryId(category.id)
+                                    expandedCategorySelector = false
+                                }
+                            )
+                        }
                     }
                 }
-
-
             }
 
-                // Date Range Filter
-                DateFilterSection(viewModel)
+            // Date Range Filter
+            DateFilterSection(viewModel)
 
 
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                ) {
-                    items(filteredTransactions) { transaction ->
-                        TransactionCard(
-                            transaction = transaction,
-                            categories = categories,
-                            onDelete = { viewModel.deleteTransaction(it) },
-                            onEdit = {
-                                selectedTransaction = it
-                                showEditDialog = true
-                            }
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                }
-
-                if (showCreateDialog && userId != null) {
-                    val userId by viewModel.activeUserId.collectAsState()
-                    val categories by viewModel.userCategories.observeAsState(emptyList())
-
-                    if (userId != null) {
-                        CreateOrEditTransactionDialog(
-                            transaction = null,
-                            categories = categories,
-                            onDismiss = { showCreateDialog = false },
-                            onSubmit = {
-                                viewModel.insertTransaction(it)
-                                showCreateDialog = false
-                            },
-                            userId = userId!!
-                        )
-                    }
-                }
-
-                if (showEditDialog && selectedTransaction != null) {
-                    EditTransactionDialog(
-                        transaction = selectedTransaction!!,
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                items(filteredTransactions) { transaction ->
+                    TransactionCard(
+                        transaction = transaction,
                         categories = categories,
-                        onDismiss = { showEditDialog = false },
-                        onSave = {
-                            viewModel.updateTransaction(it)
-                            showEditDialog = false
+                        preferredCurrencyType = preferredCurrencyType,
+                        onDelete = { viewModel.deleteTransaction(it) },
+                        onEdit = {
+                            selectedTransaction = it
+                            showEditDialog = true
                         }
                     )
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
+            }
+
+            if (showCreateDialog && activeUser?.id != null) {
+                val userId by viewModel.activeUserId.collectAsState()
+                val categories by viewModel.userCategories.observeAsState(emptyList())
+
+                if (userId != null) {
+                    CreateOrEditTransactionDialog(
+                        transaction = null,
+                        categories = categories,
+                        onDismiss = { showCreateDialog = false },
+                        onSubmit = {
+                            viewModel.insertTransaction(it)
+                            showCreateDialog = false
+                        },
+                        userId = userId!!
+                    )
+                }
+            }
+
+            if (showEditDialog && selectedTransaction != null) {
+                EditTransactionDialog(
+                    transaction = selectedTransaction!!,
+                    categories = categories,
+                    onDismiss = { showEditDialog = false },
+                    onSave = {
+                        viewModel.updateTransaction(it)
+                        showEditDialog = false
+                    }
+                )
+            }
 
         }
     }
 
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TransactionCard(
     transaction: Transaction,
     categories: List<Category>,
+    preferredCurrencyType: CurrencyType?,
     onDelete: (Transaction) -> Unit,
     onEdit: (Transaction) -> Unit
 ) {
-
-    val formatter = DateTimeFormatter.ofPattern("yyyy MM dd")
+    val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     val localDate = transaction.timestamp.atZone(ZoneId.systemDefault()).toLocalDate()
-
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -236,27 +240,30 @@ fun TransactionCard(
         colors = CardDefaults.cardColors()
     ) {
 
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "${if (transaction.isPositive) "+" else "-"} €${transaction.amount}",
-                color = if (transaction.isPositive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-            )
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "${if (transaction.isPositive) "+" else "-"} ${preferredCurrencyType?.symbol ?: ""}${transaction.amount}",
+                    color = if (transaction.isPositive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                )
 
-            val categoryName =
-                categories.find { it.id == transaction.categoryId }?.name ?: "Unknown"
-            Text(text = categoryName, style = MaterialTheme.typography.bodySmall)
+                val categoryName =
+                    categories.find { it.id == transaction.categoryId }?.name ?: "Unknown"
+                Text(text = categoryName, style = MaterialTheme.typography.bodySmall)
 
-            Text(
-                text = "Date: ${localDate.format(formatter)}",
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
+                Text(
+                    text = "Date: ${localDate.format(formatter)}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
 
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                IconButton(onClick = {onEdit(transaction)}) {
+                IconButton(onClick = { onEdit(transaction) }) {
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Edit transaction",
@@ -264,7 +271,7 @@ fun TransactionCard(
                     )
                 }
 
-                IconButton(onClick = {onDelete(transaction)}) {
+                IconButton(onClick = { onDelete(transaction) }) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Delete transaction",
@@ -272,7 +279,7 @@ fun TransactionCard(
                     )
                 }
             }
-            }
+        }
 
     }
 }
@@ -288,7 +295,8 @@ fun EditTransactionDialog(
     var valueInput by remember { mutableStateOf(transaction.amount.toString()) }
     var dateInput by remember {
         mutableStateOf(
-            transaction.timestamp.atZone(ZoneId.systemDefault()).toLocalDate().format(DateTimeFormatter.ISO_DATE)
+            transaction.timestamp.atZone(ZoneId.systemDefault()).toLocalDate()
+                .format(DateTimeFormatter.ISO_DATE)
         )
     }
     var selectedCategoryId by remember { mutableStateOf(transaction.categoryId) }
@@ -302,7 +310,8 @@ fun EditTransactionDialog(
             TextButton(onClick = {
                 val updated = transaction.copy(
                     amount = valueInput.toDoubleOrNull() ?: transaction.amount,
-                    timestamp = LocalDate.parse(dateInput).atStartOfDay(ZoneId.systemDefault()).toInstant(),
+                    timestamp = LocalDate.parse(dateInput).atStartOfDay(ZoneId.systemDefault())
+                        .toInstant(),
                     categoryId = selectedCategoryId,
                     isPositive = isPositive
                 )
@@ -390,10 +399,15 @@ fun CreateOrEditTransactionDialog(
     var dateInput by remember {
         mutableStateOf(
             transaction?.timestamp?.atZone(ZoneId.systemDefault())?.toLocalDate()
-                ?.format(DateTimeFormatter.ISO_DATE) ?: LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+                ?.format(DateTimeFormatter.ISO_DATE) ?: LocalDate.now()
+                .format(DateTimeFormatter.ISO_DATE)
         )
     }
-    var selectedCategoryId by remember { mutableStateOf(transaction?.categoryId ?: categories.firstOrNull()?.id ?: -1) }
+    var selectedCategoryId by remember {
+        mutableStateOf(
+            transaction?.categoryId ?: categories.firstOrNull()?.id ?: -1
+        )
+    }
     var isPositive by remember { mutableStateOf(transaction?.isPositive ?: true) }
     var expanded by remember { mutableStateOf(false) }
 
@@ -546,8 +560,6 @@ fun DateFilterSection(viewModel: GlobalViewModel) {
         )
     }
 }
-
-
 
 
 @RequiresApi(Build.VERSION_CODES.O)

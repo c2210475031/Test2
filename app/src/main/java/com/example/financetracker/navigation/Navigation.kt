@@ -6,7 +6,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.financetracker.navigation.Screen.TransactionChartScreen
 import com.example.financetracker.presentation.ProfileScreen
 import com.example.financetracker.presentation.StartScreen
 import com.example.financetracker.presentation.category.CategoryScreen

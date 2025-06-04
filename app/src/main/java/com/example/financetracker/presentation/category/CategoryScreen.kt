@@ -162,7 +162,6 @@ fun CategoryCard(
                     else "Limit: €${category.maxNegativeValue}",
                     style = MaterialTheme.typography.bodySmall
                 )
-                Text(text = "${category.id}", style = MaterialTheme.typography.bodySmall)
             }
 
             // Delete Button

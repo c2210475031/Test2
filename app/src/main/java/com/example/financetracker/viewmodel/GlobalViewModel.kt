@@ -6,7 +6,6 @@ import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.*
 import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.Transaction
@@ -33,18 +32,17 @@ class GlobalViewModel(
     private val _activeUserId = MutableStateFlow<Int?>(null)
     val activeUserId: StateFlow<Int?> = _activeUserId.asStateFlow()
 
+    private val _activeUser = MutableStateFlow<User?>(null)
+    val activeUser: StateFlow<User?> = _activeUser.asStateFlow()
+
     fun setActiveUser(context: Context, userId: Int) {
-        _activeUserId.value = userId
-
         viewModelScope.launch {
-            try {
-                UserPreferences.saveUserId(context, userId)
-                Log.i("GlobalViewModel", "Active user: ${_activeUserId.value}")
-            } catch (e: Exception) {
-                Log.e("GlobalViewModel", "Error setting active user", e)
-            }
+            val users = repository.getAllUsersOnce()
+            val user = users.find { it.id == userId }
+            _activeUserId.value = userId
+            _activeUser.value = user
+            UserPreferences.saveUserId(context, userId)
         }
-
     }
 
     private val _selectedCategoryId = MutableStateFlow<Int?>(null)

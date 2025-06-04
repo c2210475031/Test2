@@ -22,6 +22,6 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions")
     fun getAllTransactions(): LiveData<List<Transaction>>
 
-    @Query("SELECT * FROM transactions WHERE userId = :userId")
+    @Query("SELECT * FROM transactions WHERE userId = :userId ORDER BY id DESC")
     fun getTransactionsOfUser(userId: Int): LiveData<List<Transaction>>
 }
