@@ -126,34 +126,43 @@ fun UserCard(
     onDelete: (User) -> Unit,
     onActivate: (User) -> Unit
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
+    val cardColors = if (isActive) {
+        CardDefaults.cardColors(
+            containerColor = colorScheme.primary,
+            contentColor = colorScheme.onPrimary
+        )
+    } else {
+        CardDefaults.cardColors(
+            containerColor = colorScheme.surface,
+            contentColor = colorScheme.onSurface
+        )
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 6.dp),
-        colors = if (isActive)
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-        else
-            CardDefaults.cardColors()
+        elevation = CardDefaults.cardElevation(6.dp),
+        colors = cardColors,
+        shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
                 Text(
                     text = user.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer
-                    else MaterialTheme.colorScheme.onSurface
+                    style = MaterialTheme.typography.titleMedium
                 )
                 Text(
                     text = "Currency: ${user.preferredCurrency}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer
-                    else MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
 
@@ -165,8 +174,7 @@ fun UserCard(
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = "Set as active user",
-                        tint = if (isActive) MaterialTheme.colorScheme.outline
-                        else MaterialTheme.colorScheme.primary
+                        tint = if (isActive) colorScheme.outline else colorScheme.primary
                     )
                 }
 
@@ -184,55 +192,68 @@ fun UserCard(
 
 @Composable
 fun CreateUserDialog(
-    onDismiss: () -> Unit, onCreate: (String, CurrencyType) -> Unit
+    onDismiss: () -> Unit,
+    onCreate: (String, CurrencyType) -> Unit
 ) {
     var nameInput by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
     var selectedCurrency by remember { mutableStateOf(CurrencyType.EUR) }
 
-    AlertDialog(onDismissRequest = onDismiss, confirmButton = {
-        TextButton(onClick = {
-            onCreate(nameInput, selectedCurrency)
-        }) {
-            Text("Create")
-        }
-    }, dismissButton = {
-        TextButton(onClick = onDismiss) {
-            Text("Cancel")
-        }
-    }, title = { Text("Create New User") }, text = {
-        Column {
-            OutlinedTextField(
-                value = nameInput,
-                onValueChange = { nameInput = it },
-                label = { Text("User Name") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Currency dropdown
-            Box {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(
+                onClick = { onCreate(nameInput.trim(), selectedCurrency) },
+                enabled = nameInput.isNotBlank()
+            ) {
+                Text("Create")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+        title = { Text("Create New User") },
+        text = {
+            Column {
                 OutlinedTextField(
-                    value = selectedCurrency.toString(),
-                    onValueChange = {},
-                    label = { Text("Preferred Currency") },
-                    readOnly = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { expanded = true })
+                    value = nameInput,
+                    onValueChange = { nameInput = it },
+                    label = { Text("User Name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-                DropdownMenu(
-                    expanded = expanded, onDismissRequest = { expanded = false }) {
-                    CurrencyType.values().forEach { currency ->
-                        DropdownMenuItem(text = { Text(currency.toString()) }, onClick = {
-                            selectedCurrency = currency
-                            expanded = false
-                        })
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Box {
+                    OutlinedTextField(
+                        value = selectedCurrency.toString(),
+                        onValueChange = {},
+                        label = { Text("Preferred Currency") },
+                        readOnly = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { expanded = true }
+                    )
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        CurrencyType.values().forEach { currency ->
+                            DropdownMenuItem(
+                                text = { Text(currency.toString()) },
+                                onClick = {
+                                    selectedCurrency = currency
+                                    expanded = false
+                                }
+                            )
+                        }
                     }
                 }
             }
         }
-    })
+    )
 }

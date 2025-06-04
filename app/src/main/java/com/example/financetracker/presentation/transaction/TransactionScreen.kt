@@ -30,6 +30,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,7 +56,6 @@ import com.example.financetracker.database.model.Category
 import com.example.financetracker.database.model.CurrencyType
 import com.example.financetracker.database.model.Transaction
 import com.example.financetracker.viewmodel.GlobalViewModel
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -115,9 +115,7 @@ fun TransactionScreen(
         ) {
             // Type Filter
             Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
             ) {
 
                 Box(modifier = Modifier.padding(16.dp)) {
@@ -141,23 +139,16 @@ fun TransactionScreen(
                     }
                     DropdownMenu(
                         expanded = expandedCategorySelector,
-                        onDismissRequest = { expandedCategorySelector = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("All Categories") },
-                            onClick = {
-                                viewModel.setSelectedCategoryId(null)
-                                expandedCategorySelector = false
-                            }
-                        )
+                        onDismissRequest = { expandedCategorySelector = false }) {
+                        DropdownMenuItem(text = { Text("All Categories") }, onClick = {
+                            viewModel.setSelectedCategoryId(null)
+                            expandedCategorySelector = false
+                        })
                         categories.forEach { category ->
-                            DropdownMenuItem(
-                                text = { Text(category.name) },
-                                onClick = {
-                                    viewModel.setSelectedCategoryId(category.id)
-                                    expandedCategorySelector = false
-                                }
-                            )
+                            DropdownMenuItem(text = { Text(category.name) }, onClick = {
+                                viewModel.setSelectedCategoryId(category.id)
+                                expandedCategorySelector = false
+                            })
                         }
                     }
                 }
@@ -181,8 +172,7 @@ fun TransactionScreen(
                         onEdit = {
                             selectedTransaction = it
                             showEditDialog = true
-                        }
-                    )
+                        })
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
@@ -213,8 +203,7 @@ fun TransactionScreen(
                     onSave = {
                         viewModel.updateTransaction(it)
                         showEditDialog = false
-                    }
-                )
+                    })
             }
 
         }
@@ -237,12 +226,14 @@ fun TransactionCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(4.dp),
-        colors = CardDefaults.cardColors()
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
     ) {
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -303,23 +294,36 @@ fun EditTransactionDialog(
     var isPositive by remember { mutableStateOf(transaction.isPositive) }
     var expanded by remember { mutableStateOf(false) }
 
+    val isFormValid =
+        valueInput.toDoubleOrNull() != null && dateInput.isNotBlank() && selectedCategoryId != -1
+
     AlertDialog(
+        containerColor = MaterialTheme.colorScheme.surface,
         onDismissRequest = onDismiss,
-        title = { Text("Edit Transaction") },
+        title = { Text("Edit Transaction", color = MaterialTheme.colorScheme.onSurface) },
         confirmButton = {
-            TextButton(onClick = {
-                val updated = transaction.copy(
-                    amount = valueInput.toDoubleOrNull() ?: transaction.amount,
-                    timestamp = LocalDate.parse(dateInput).atStartOfDay(ZoneId.systemDefault())
-                        .toInstant(),
-                    categoryId = selectedCategoryId,
-                    isPositive = isPositive
+            TextButton(
+                onClick = {
+                    val updated = transaction.copy(
+                        amount = valueInput.toDouble(),
+                        timestamp = LocalDate.parse(dateInput).atStartOfDay(ZoneId.systemDefault())
+                            .toInstant(),
+                        categoryId = selectedCategoryId,
+                        isPositive = isPositive
+                    )
+                    onSave(updated)
+                }, enabled = isFormValid
+            ) {
+                Text(
+                    "Save",
+                    color = if (isFormValid) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                 )
-                onSave(updated)
-            }) { Text("Save") }
+            }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) {
+                Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
+            }
         },
         text = {
             Column {
@@ -327,7 +331,8 @@ fun EditTransactionDialog(
                     value = valueInput,
                     onValueChange = { valueInput = it },
                     label = { Text("Amount") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -346,48 +351,57 @@ fun EditTransactionDialog(
                         IconButton(onClick = { expanded = true }) {
                             Icon(Icons.Default.DateRange, contentDescription = "Select category")
                         }
-                    }
-                )
+                    })
 
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
+                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     categories.forEach { category ->
-                        DropdownMenuItem(
-                            text = { Text(category.name) },
-                            onClick = {
-                                selectedCategoryId = category.id
-                                expanded = false
-                            }
-                        )
+                        DropdownMenuItem(text = { Text(category.name) }, onClick = {
+                            selectedCategoryId = category.id
+                            expanded = false
+                        })
                     }
                 }
 
                 Spacer(Modifier.height(8.dp))
 
                 Row {
-                    Text("Type:")
+                    Text("Type:", color = MaterialTheme.colorScheme.onSurface)
                     Spacer(modifier = Modifier.width(8.dp))
+
                     FilterChip(
                         selected = isPositive,
                         onClick = { isPositive = true },
-                        label = { Text("Budget") })
+                        label = { Text("Budget") },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            selectedContainerColor = MaterialTheme.colorScheme.primary,
+                            labelColor = MaterialTheme.colorScheme.onSurface,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    )
+
                     Spacer(modifier = Modifier.width(8.dp))
+
                     FilterChip(
                         selected = !isPositive,
                         onClick = { isPositive = false },
-                        label = { Text("Cost") })
+                        label = { Text("Cost") },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            selectedContainerColor = MaterialTheme.colorScheme.secondary,
+                            labelColor = MaterialTheme.colorScheme.onSurface,
+                            selectedLabelColor = MaterialTheme.colorScheme.onSecondary
+                        )
+                    )
                 }
             }
-        }
-    )
+        })
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CreateOrEditTransactionDialog(
-    transaction: Transaction? = null, // null means create mode
+    transaction: Transaction? = null,
     categories: List<Category>,
     onDismiss: () -> Unit,
     onSubmit: (Transaction) -> Unit,
@@ -404,41 +418,48 @@ fun CreateOrEditTransactionDialog(
         )
     }
     var selectedCategoryId by remember {
-        mutableStateOf(
-            transaction?.categoryId ?: categories.firstOrNull()?.id ?: -1
-        )
+        mutableStateOf(transaction?.categoryId ?: categories.firstOrNull()?.id ?: -1)
     }
     var isPositive by remember { mutableStateOf(transaction?.isPositive ?: true) }
     var expanded by remember { mutableStateOf(false) }
 
+    val isFormValid =
+        valueInput.toDoubleOrNull() != null && dateInput.isNotBlank() && selectedCategoryId != -1
+
     AlertDialog(
+        containerColor = MaterialTheme.colorScheme.surface,
         onDismissRequest = onDismiss,
-        title = { Text(if (isEdit) "Edit Transaction" else "Add Transaction") },
+        title = {
+            Text(
+                if (isEdit) "Edit Transaction" else "Add Transaction",
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        },
         confirmButton = {
-            TextButton(onClick = {
-                val amount = valueInput.toDoubleOrNull() ?: return@TextButton
-                val date = try {
-                    LocalDate.parse(dateInput)
-                } catch (e: Exception) {
-                    return@TextButton
-                }
-                val instant = date.atStartOfDay(ZoneId.systemDefault()).toInstant()
-                val newTransaction = Transaction(
-                    id = transaction?.id ?: 0,
-                    amount = amount,
-                    timestamp = instant,
-                    categoryId = selectedCategoryId,
-                    isPositive = isPositive,
-                    userId = transaction?.userId ?: userId
+            TextButton(
+                onClick = {
+                    val instant =
+                        LocalDate.parse(dateInput).atStartOfDay(ZoneId.systemDefault()).toInstant()
+                    val transactionToSave = Transaction(
+                        id = transaction?.id ?: 0,
+                        amount = valueInput.toDouble(),
+                        timestamp = instant,
+                        categoryId = selectedCategoryId,
+                        isPositive = isPositive,
+                        userId = transaction?.userId ?: userId
+                    )
+                    onSubmit(transactionToSave)
+                }, enabled = isFormValid
+            ) {
+                Text(
+                    "Save",
+                    color = if (isFormValid) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
                 )
-                onSubmit(newTransaction)
-            }) {
-                Text("Save")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text("Cancel", color = MaterialTheme.colorScheme.onSurface)
             }
         },
         text = {
@@ -453,11 +474,7 @@ fun CreateOrEditTransactionDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                DatePickerField(
-                    label = "Date",
-                    selectedDate = dateInput,
-                    onDateSelected = { dateInput = it }
-                )
+                DatePickerField("Date", dateInput, onDateSelected = { dateInput = it })
 
                 Spacer(modifier = Modifier.height(8.dp))
 
@@ -466,26 +483,19 @@ fun CreateOrEditTransactionDialog(
                     onValueChange = {},
                     label = { Text("Category") },
                     readOnly = true,
+                    modifier = Modifier.fillMaxWidth(),
                     trailingIcon = {
                         IconButton(onClick = { expanded = true }) {
                             Icon(Icons.Default.DateRange, contentDescription = "Select category")
                         }
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    })
 
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
+                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     categories.forEach { category ->
-                        DropdownMenuItem(
-                            text = { Text(category.name) },
-                            onClick = {
-                                selectedCategoryId = category.id
-                                expanded = false
-                            }
-                        )
+                        DropdownMenuItem(text = { Text(category.name) }, onClick = {
+                            selectedCategoryId = category.id
+                            expanded = false
+                        })
                     }
                 }
 
@@ -505,8 +515,7 @@ fun CreateOrEditTransactionDialog(
                         label = { Text("Cost") })
                 }
             }
-        }
-    )
+        })
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -545,8 +554,7 @@ fun DateFilterSection(viewModel: GlobalViewModel) {
             onDateSelected = {
                 viewModel.setStartDate(LocalDate.parse(it))
                 showStartPicker = false
-            }
-        )
+            })
     }
 
     if (showEndPicker) {
@@ -556,8 +564,7 @@ fun DateFilterSection(viewModel: GlobalViewModel) {
             onDateSelected = {
                 viewModel.setEndDate(LocalDate.parse(it))
                 showEndPicker = false
-            }
-        )
+            })
     }
 }
 
