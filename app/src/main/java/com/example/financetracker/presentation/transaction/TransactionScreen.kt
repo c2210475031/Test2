@@ -69,12 +69,11 @@ fun TransactionScreen(
     navController: NavController,
 ) {
     val viewModel = MainActivity.globalViewModel
-    val transactions by viewModel.userTransactions.observeAsState(initial = emptyList())
     val filteredTransactions by viewModel.filteredTransactions.collectAsState()
     val categories by viewModel.userCategories.observeAsState(emptyList())
     val selectedFilter by viewModel.filter.collectAsState()
     var expanded by remember { mutableStateOf(false) }
-    val selectedCategoryId by viewModel.selectedCategoryId.collectAsState()
+    val selectedCategoryName by viewModel.selectedCategoryName.collectAsState()
     var expandedCategorySelector by remember { mutableStateOf(false) }
 
     val activeUser by viewModel.activeUser.collectAsState()
@@ -135,17 +134,20 @@ fun TransactionScreen(
 
                 Box(modifier = Modifier.padding(16.dp)) {
                     Button(onClick = { expandedCategorySelector = true }) {
-                        Text("Category: $selectedFilter") //TODO: TEXT TO BE A CATEGORY, NOT TYPE
+                        if (selectedCategoryName == null) Text("Category: All Categories")
+                        else Text("Category: $selectedCategoryName")
                     }
                     DropdownMenu(
                         expanded = expandedCategorySelector,
                         onDismissRequest = { expandedCategorySelector = false }) {
                         DropdownMenuItem(text = { Text("All Categories") }, onClick = {
                             viewModel.setSelectedCategoryId(null)
+                            viewModel.setSelectedCategoryName(null)
                             expandedCategorySelector = false
                         })
                         categories.forEach { category ->
                             DropdownMenuItem(text = { Text(category.name) }, onClick = {
+                                viewModel.setSelectedCategoryName(category.name)
                                 viewModel.setSelectedCategoryId(category.id)
                                 expandedCategorySelector = false
                             })
