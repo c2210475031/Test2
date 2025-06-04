@@ -52,15 +52,12 @@ class GlobalViewModel(
         _selectedCategoryId.value = id
     }
 
-
     private val _selectedCategoryName = MutableStateFlow<String?>(null)
     val selectedCategoryName: StateFlow<String?> = _selectedCategoryName.asStateFlow()
 
     fun setSelectedCategoryName(name: String?) {
         _selectedCategoryName.value = name
     }
-
-
 
     val allUsers: LiveData<List<User>> = repository.allUsers
     val userTransactions: LiveData<List<Transaction>> = activeUserId.flatMapLatest { userId ->
